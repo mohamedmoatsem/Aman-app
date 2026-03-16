@@ -114,6 +114,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Workshop"
+  /subscribe:
+    post:
+      operationId: subscribe
+      tags: [community]
+      summary: Subscribe with email for daily support messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscribeBody"
+      responses:
+        "201":
+          description: Subscribed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscribeResponse"
+        "409":
+          description: Email already subscribed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /community:
     get:
       operationId: getCommunityPosts
@@ -154,6 +178,24 @@ components:
           type: string
       required:
         - status
+    SubscribeBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+    SubscribeResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        email:
+          type: string
+      required:
+        - message
+        - email
     ErrorResponse:
       type: object
       properties:

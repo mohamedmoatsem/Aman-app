@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Phone, BookHeart, CalendarDays, Users, ShieldCheck, HeartHandshake } from "lucide-react";
+import { Phone, BookHeart, CalendarDays, Users, ShieldCheck, HeartHandshake, Mail, Loader2, CheckCircle2 } from "lucide-react";
 import MobileLayout from "@/components/layout/MobileLayout";
 
 const moods = [
@@ -51,8 +51,33 @@ const quickLinks = [
 
 export default function Home() {
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
+  const [email, setEmail] = useState("");
+  const [subStatus, setSubStatus] = useState<"idle" | "loading" | "success" | "duplicate" | "error">("idle");
 
   const currentMood = selectedMood !== null ? moods[selectedMood] : null;
+
+  async function handleSubscribe(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) return;
+    setSubStatus("loading");
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.status === 201) {
+        setSubStatus("success");
+        setEmail("");
+      } else if (res.status === 409) {
+        setSubStatus("duplicate");
+      } else {
+        setSubStatus("error");
+      }
+    } catch {
+      setSubStatus("error");
+    }
+  }
 
   return (
     <MobileLayout>
@@ -133,6 +158,56 @@ export default function Home() {
               <span className="text-xl shrink-0">{currentMood.icon}</span>
               <p>{currentMood.response}</p>
             </div>
+          )}
+        </section>
+
+        {/* Email Subscription */}
+        <section className="bg-gradient-to-br from-primary/5 to-secondary/10 border border-primary/20 rounded-3xl p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <Mail className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-foreground">رسائل دعم يومية</h2>
+              <p className="text-xs text-muted-foreground">اشترك ليصلك دعم أمان كل يوم</p>
+            </div>
+          </div>
+
+          {subStatus === "success" ? (
+            <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700">
+              <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-500" />
+              <p className="text-sm font-medium">شكراً لك! سنرسل لك رسائل الأمان قريباً. 💚</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
+              <input
+                type="email"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setSubStatus("idle"); }}
+                placeholder="أدخل بريدك الإلكتروني"
+                className="w-full px-4 py-3 rounded-2xl border border-border bg-background text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
+                dir="ltr"
+                required
+              />
+              <button
+                type="submit"
+                disabled={subStatus === "loading"}
+                className="flex items-center justify-center gap-2 w-full bg-primary text-primary-foreground py-3 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-60"
+              >
+                {subStatus === "loading" ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Mail className="w-4 h-4" />
+                )}
+                <span>{subStatus === "loading" ? "جارٍ الاشتراك..." : "اشترك الآن"}</span>
+              </button>
+              {subStatus === "duplicate" && (
+                <p className="text-center text-sm text-amber-600 font-medium">هذا البريد الإلكتروني مشترك بالفعل ✓</p>
+              )}
+              {subStatus === "error" && (
+                <p className="text-center text-sm text-destructive font-medium">حدث خطأ، يرجى المحاولة مجدداً</p>
+              )}
+            </form>
           )}
         </section>
 

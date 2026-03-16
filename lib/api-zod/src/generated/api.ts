@@ -79,6 +79,13 @@ export const CreateWorkshopBody = zod.object({
 });
 
 /**
+ * @summary Subscribe with email for daily support messages
+ */
+export const SubscribeBody = zod.object({
+  email: zod.string().email(),
+});
+
+/**
  * @summary Get all community posts
  */
 export const GetCommunityPostsResponseItem = zod.object({

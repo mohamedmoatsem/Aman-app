@@ -24,6 +24,8 @@ import type {
   ErrorResponse,
   HealthStatus,
   Resource,
+  SubscribeBody,
+  SubscribeResponse,
   Workshop,
 } from "./api.schemas";
 
@@ -518,6 +520,92 @@ export const useCreateWorkshop = <
   TContext
 > => {
   return useMutation(getCreateWorkshopMutationOptions(options));
+};
+
+/**
+ * @summary Subscribe with email for daily support messages
+ */
+export const getSubscribeUrl = () => {
+  return `/api/subscribe`;
+};
+
+export const subscribe = async (
+  subscribeBody: SubscribeBody,
+  options?: RequestInit,
+): Promise<SubscribeResponse> => {
+  return customFetch<SubscribeResponse>(getSubscribeUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(subscribeBody),
+  });
+};
+
+export const getSubscribeMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof subscribe>>,
+    TError,
+    { data: BodyType<SubscribeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof subscribe>>,
+  TError,
+  { data: BodyType<SubscribeBody> },
+  TContext
+> => {
+  const mutationKey = ["subscribe"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof subscribe>>,
+    { data: BodyType<SubscribeBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return subscribe(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SubscribeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof subscribe>>
+>;
+export type SubscribeMutationBody = BodyType<SubscribeBody>;
+export type SubscribeMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Subscribe with email for daily support messages
+ */
+export const useSubscribe = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof subscribe>>,
+    TError,
+    { data: BodyType<SubscribeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof subscribe>>,
+  TError,
+  { data: BodyType<SubscribeBody> },
+  TContext
+> => {
+  return useMutation(getSubscribeMutationOptions(options));
 };
 
 /**

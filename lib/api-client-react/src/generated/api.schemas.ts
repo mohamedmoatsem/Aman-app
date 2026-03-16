@@ -9,6 +9,15 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface SubscribeBody {
+  email: string;
+}
+
+export interface SubscribeResponse {
+  message: string;
+  email: string;
+}
+
 export interface ErrorResponse {
   error: string;
 }

@@ -13,4 +13,6 @@ export * from "./createWorkshop";
 export * from "./errorResponse";
 export * from "./healthStatus";
 export * from "./resource";
+export * from "./subscribeBody";
+export * from "./subscribeResponse";
 export * from "./workshop";
