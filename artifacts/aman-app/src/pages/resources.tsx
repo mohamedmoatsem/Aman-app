@@ -4,12 +4,25 @@ import { useResources } from "@/hooks/use-resources";
 import { BookOpen, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { mentalHealthArticles } from "@/data/articles";
 
 declare global {
   interface Window {
     openArticle: (title: string, body: string) => void;
   }
 }
+
+const categoryColors: Record<string, string> = {
+  "القلق":          "bg-blue-100 text-blue-700",
+  "الاكتئاب":       "bg-purple-100 text-purple-700",
+  "الاسترخاء":      "bg-green-100 text-green-700",
+  "العلاقات":       "bg-pink-100 text-pink-700",
+  "النوم":          "bg-indigo-100 text-indigo-700",
+  "الصدمات":        "bg-orange-100 text-orange-700",
+  "تقدير الذات":    "bg-yellow-100 text-yellow-700",
+  "المشاعر":        "bg-red-100 text-red-700",
+  "الصحة النفسية":  "bg-teal-100 text-teal-700",
+};
 
 export default function Resources() {
   const { data: resources, isLoading, error } = useResources();
