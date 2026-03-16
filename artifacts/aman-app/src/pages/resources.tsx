@@ -5,6 +5,12 @@ import { BookOpen, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+declare global {
+  interface Window {
+    openArticle: (title: string, body: string) => void;
+  }
+}
+
 export default function Resources() {
   const { data: resources, isLoading, error } = useResources();
   const { t } = useLanguage();
@@ -72,7 +78,10 @@ export default function Resources() {
               <div className="p-5 flex flex-col gap-2">
                 <h3 className="font-bold text-lg text-foreground leading-tight">{resource.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">{resource.description}</p>
-                <button className="mt-3 text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all w-fit">
+                <button
+                  onClick={() => window.openArticle(resource.title, resource.description)}
+                  className="mt-3 text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all w-fit"
+                >
                   {r.readMore}
                 </button>
               </div>

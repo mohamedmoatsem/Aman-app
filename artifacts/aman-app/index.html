@@ -20,5 +20,29 @@
         <div id="modalBody"></div>
       </div>
     </div>
+
+    <script>
+      function openArticle(title, body) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalBody').textContent = body;
+        var modal = document.getElementById('articleModal');
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeArticle() {
+        document.getElementById('articleModal').style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      window.addEventListener('click', function(e) {
+        var modal = document.getElementById('articleModal');
+        if (e.target === modal) closeArticle();
+      });
+
+      window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeArticle();
+      });
+    </script>
   </body>
 </html>
