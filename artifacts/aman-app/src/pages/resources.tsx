@@ -33,6 +33,21 @@ export default function Resources() {
           </div>
         </div>
 
+        {/* Featured article */}
+        <div className="bg-primary/5 border border-primary/20 rounded-3xl p-5 flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">مقال مميز</span>
+            <h3 className="font-bold text-foreground mt-2 mb-1">كيف تتعامل مع نوبة الهلع؟</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">دليل عملي للتعامل مع نوبات القلق والهلع بثقة وهدوء</p>
+          </div>
+          <button
+            onClick={() => window.openArticle('كيف تتعامل مع نوبة الهلع؟', 'هنا تضع نص المقال كاملاً...')}
+            className="shrink-0 bg-primary text-primary-foreground text-sm font-bold px-4 py-2 rounded-xl hover:opacity-90 active:scale-95 transition-all"
+          >
+            {r.readMore}
+          </button>
+        </div>
+
         <div className="flex flex-col gap-4">
           {isLoading && Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-3 p-4 bg-card rounded-3xl border border-border shadow-sm">
