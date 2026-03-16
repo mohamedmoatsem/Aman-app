@@ -1,0 +1,21 @@
+packages:
+  "framer-motion": "Smooth page transitions and micro-interactions for a premium mobile feel"
+  "date-fns": "For formatting workshop and community post dates"
+  "date-fns/locale/ar-SA": "Arabic locale for date-fns"
+  "react-hook-form": "Form state management"
+  "@hookform/resolvers": "Zod validation resolver for forms"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility for merging tailwind classes safely"
+
+images:
+  - path: "artifacts/aman-app/public/images/logo.png"
+    description: "Minimalist abstract safety shield and heart logo in sky blue and emerald green on transparent background, clean vector style"
+    aspect_ratio: "1:1"
+  - path: "artifacts/aman-app/public/images/hero-bg.png"
+    description: "Soft abstract gradient mesh background in calming sky blue and very light emerald green, clean modern minimal, high key lighting"
+    aspect_ratio: "16:9"
+
+notes:
+  - App requires strictly RTL layout with Arabic text
+  - Uses standard REST endpoints on /api/ as defined in OpenAPI spec
+  - Assuming no auth required for community posting based on provided spec
