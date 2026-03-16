@@ -12,5 +12,13 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <div id="articleModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button" onclick="closeArticle()">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <div id="modalBody"></div>
+      </div>
+    </div>
   </body>
 </html>
