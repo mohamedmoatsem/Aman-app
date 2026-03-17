@@ -1,10 +1,11 @@
 import MobileLayout from "@/components/layout/MobileLayout";
 import Header from "@/components/layout/Header";
 import { useResources } from "@/hooks/use-resources";
-import { BookOpen, AlertCircle } from "lucide-react";
+import { BookOpen, AlertCircle, ArrowLeft, Heart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { mentalHealthArticles } from "@/data/articles";
+import { useLocation } from "wouter";
 
 declare global {
   interface Window {
@@ -28,6 +29,7 @@ export default function Resources() {
   const { data: resources, isLoading, error } = useResources();
   const { t } = useLanguage();
   const r = t.resources;
+  const [, navigate] = useLocation();
 
   return (
     <MobileLayout>
@@ -45,6 +47,28 @@ export default function Resources() {
             </div>
           </div>
         </div>
+
+        {/* Depression recovery section banner */}
+        <button
+          onClick={() => navigate("/depression")}
+          className="w-full bg-gradient-to-l from-purple-500/10 via-primary/10 to-emerald-500/10 border border-primary/20 rounded-3xl p-5 flex items-center gap-4 text-right active:scale-[0.98] transition-transform"
+        >
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[11px] font-bold bg-primary text-primary-foreground px-2 py-0.5 rounded-full">قسم جديد</span>
+            </div>
+            <h3 className="font-bold text-foreground text-base leading-tight">رحلة الشفاء من الاكتئاب</h3>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+              قصص حقيقية · تقنيات حديثة · استراتيجيات علمية بمراجع موثّقة
+            </p>
+          </div>
+          <div className="flex flex-col items-center gap-2 shrink-0">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-purple-500 rounded-2xl flex items-center justify-center">
+              <Heart className="w-6 h-6 text-white" />
+            </div>
+            <ArrowLeft className="w-4 h-4 text-primary" />
+          </div>
+        </button>
 
         {/* Featured article */}
         <div className="bg-primary/5 border border-primary/20 rounded-3xl p-5 flex items-center justify-between gap-4">
