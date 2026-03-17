@@ -147,6 +147,44 @@ export default function Resources() {
             </div>
           )}
         </div>
+
+        {/* ===== 10 Mental Health Articles ===== */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs font-bold text-muted-foreground px-2">مقالات الصحة النفسية</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {mentalHealthArticles.map((article) => (
+              <div
+                key={article.id}
+                className="bg-card border border-border rounded-3xl p-4 flex items-center gap-4 shadow-sm"
+              >
+                <div className="flex-1 min-w-0">
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${categoryColors[article.category] ?? "bg-primary/10 text-primary"}`}>
+                    {article.category}
+                  </span>
+                  <h3 className="font-bold text-foreground text-sm leading-snug mt-1.5 mb-1">
+                    {article.title}
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                    {article.summary}
+                  </p>
+                </div>
+                <button
+                  onClick={() => window.openArticle(article.title, article.content)}
+                  className="shrink-0 w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center active:scale-95 transition-transform"
+                  aria-label="اقرأ المقال"
+                >
+                  <BookOpen className="w-4 h-4 text-primary" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </MobileLayout>
   );
