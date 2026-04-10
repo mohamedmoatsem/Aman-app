@@ -9,6 +9,7 @@ import Resources from "@/pages/resources";
 import Workshops from "@/pages/workshops";
 import Community from "@/pages/community";
 import Depression from "@/pages/depression";
+import Chat from "@/pages/chat";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/workshops" component={Workshops} />
       <Route path="/community" component={Community} />
       <Route path="/depression" component={Depression} />
+      <Route path="/chat" component={Chat} />
       <Route component={NotFound} />
     </Switch>
   );

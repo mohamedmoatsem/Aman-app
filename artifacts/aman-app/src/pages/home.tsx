@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Phone, BookHeart, CalendarDays, Users, ShieldCheck, HeartHandshake, Mail, Loader2, CheckCircle2 } from "lucide-react";
+import { Phone, BookHeart, CalendarDays, Users, ShieldCheck, HeartHandshake, Mail, Loader2, CheckCircle2, MessageCircleHeart } from "lucide-react";
 import MobileLayout from "@/components/layout/MobileLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -122,6 +122,14 @@ export default function Home() {
             >
               <HeartHandshake className="w-5 h-5" />
               <span>{t.home.browseResources}</span>
+            </Link>
+
+            <Link
+              href="/chat"
+              className="flex items-center justify-center gap-3 w-full bg-emerald-500/80 backdrop-blur-md border border-emerald-400/40 text-white px-6 py-4 rounded-2xl font-semibold text-lg hover:bg-emerald-500/90 active:scale-95 transition-all duration-200 shadow-lg shadow-emerald-900/20"
+            >
+              <MessageCircleHeart className="w-5 h-5" />
+              <span>تكلّم مع مساعد أمان 🌿</span>
             </Link>
           </div>
         </div>
