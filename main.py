@@ -27,3 +27,6 @@ user_message = "يا مساعد أمان، أنا حاسس بضغط اليوم �
 response = chat_session.send_message(user_message)
 
 print(f"رد مساعد أمان: {response.text}")
+# إذا كان الرد يحتوي على كلمة Final selection، قم بإزالتها
+clean_reply = response.text.replace("Final selection:", "").strip()
+print(clean_reply)
