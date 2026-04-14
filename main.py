@@ -1,32 +1,36 @@
 import os
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import google.generativeai as genai
 
-# 1. إعداد مفتاح الـ API من Secrets
-os.environ["GOOGLE_API_KEY"] = os.environ['Gemini_API_KEY']
+app = Flask(__name__)
+CORS(app) # هذا السطر هو الذي يحل رسالة "ما قدرنا نوصل للخادم"
+
+# إعداد Gemma 4 باستخدام السر (Secret) الذي وضعته
+os.environ["GOOGLE_API_KEY"] = os.environ['GEMINI_API_KEY']
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+model = genai.GenerativeModel('gemma-7b')
 
-# 2. إعداد النموذج (Gemma 4) مع التعليمات الأساسية لتطبيق أمان
-generation_config = {
-  "temperature": 0.7,
-  "top_p": 0.95,
-  "top_k": 64,
-  "max_output_tokens": 1000,
-}
+@app.route('/')
+def health_check():
+    return "Aman Server is Up and Running!"
 
-model = genai.GenerativeModel(
-  model_name="gemma-4-26b-a4b-it", # اسم النموذج الذي اخترته في AI Studio
-  generation_config=generation_config,
-  system_instruction="أنت 'مساعد أمان'، رفيق داعم وودود. هدفك تقديم الدعم الاجتماعي والنفسي للمستخدمين بلغة عربية بسيطة وقريبة من اللهجة السودانية. كن متعاطفاً ومستمعاً جيداً."
-)
+@app.route('/ask', methods=['POST'])
+def ask_gemma():
+    try:
+        data = request.json
+        # تأكد أن تطبيقك يرسل كلمة 'message' في الطلب
+        user_text = data.get('message', '')
+        
+        if not user_text:
+            return jsonify({"reply": "لم أستلم رسالة، حاول مرة أخرى."}), 400
+            
+        response = model.generate_content(user_text)
+        return jsonify({"reply": response.text})
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"reply": "عذراً، حدث خطأ فني في الخادم."}), 500
 
-# 3. بدء محادثة تجريبية
-chat_session = model.start_chat(history=[])
-
-# تجربة رسالة من مستخدم
-user_message = "يا مساعد أمان، أنا حاسس بضغط اليوم وتعبان شديد."
-response = chat_session.send_message(user_message)
-
-print(f"رد مساعد أمان: {response.text}")
-# إذا كان الرد يحتوي على كلمة Final selection، قم بإزالتها
-clean_reply = response.text.replace("Final selection:", "").strip()
-print(clean_reply)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
+    
