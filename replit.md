@@ -91,6 +91,22 @@ Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used b
 
 Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
 
+### `artifacts/aman-dashboard` (Python/Streamlit)
+
+Python Streamlit dashboard for advanced psychological support features. Accessible at `/dashboard/` (proxied via Vite dev server from port 5000).
+
+- Entry: `app.py` — main page with Gemma 4 mood classification (DBT/MCT routing)
+- Pages:
+  - `pages/1_🆘_ركن_الطوارئ.py` — DBT Emergency Corner with TIPP exercises (breathing timer, temperature exercises, distress tolerance tips in Sudanese Arabic)
+  - `pages/2_📦_صندوق_القلق.py` — MCT Worry Box with scheduled worry viewing window (JSON-backed storage)
+  - `pages/3_🎯_تمرين_الانتباه.py` — Attention Training Technique with audio and visual stimuli
+  - `pages/4_📚_المقالات.py` — Swipe card article browser (DBT/MCT filtered)
+- Utils: `utils/gemma.py` (Gemma 4 API), `utils/storage.py` (worry JSON CRUD)
+- Data: `data/articles.json` (6 swipe cards), `data/worries.json` (worry storage)
+- Workflow: `artifacts/aman-dashboard: Streamlit App` — runs on port 5000 with `--server.baseUrlPath /dashboard`
+- Vite proxy: `/dashboard` → `localhost:5000` (with WebSocket support)
+- Packages installed system-wide: `streamlit`, `google-genai` (via `--break-system-packages`)
+
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.

@@ -17,6 +17,26 @@ env = { "CI" = "true" }
 [workflows]
 runButton = "Project"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "artifacts/aman-dashboard: Streamlit App"
+
+[[workflows.workflow]]
+name = "artifacts/aman-dashboard: Streamlit App"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd /home/runner/workspace/artifacts/aman-dashboard && streamlit run app.py --server.port 5000 --server.headless true --server.enableCORS false --server.enableXsrfProtection false --server.baseUrlPath /dashboard"
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true

@@ -1,0 +1,17 @@
+kind = "web"
+previewPath = "/dashboard/"
+title = "لوحة أمان النفسية"
+version = "1.0.0"
+id = "artifacts/aman-dashboard"
+router = "path"
+
+[[services]]
+localPort = 5000
+name = "web"
+paths = ["/dashboard/"]
+
+[services.development]
+run = "cd /home/runner/workspace/artifacts/aman-dashboard && streamlit run app.py --server.port 5000 --server.headless true --server.enableCORS false --server.enableXsrfProtection false"
+
+[services.env]
+PORT = "5000"
