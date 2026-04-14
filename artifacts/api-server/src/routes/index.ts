@@ -5,6 +5,8 @@ import workshopsRouter from "./workshops";
 import communityRouter from "./community";
 import subscribeRouter from "./subscribe";
 import chatRouter from "./chat";
+import moodRouter from "./mood";
+import jitaiRouter from "./jitai";
 
 const router: IRouter = Router();
 
@@ -14,5 +16,7 @@ router.use(workshopsRouter);
 router.use(communityRouter);
 router.use(subscribeRouter);
 router.use(chatRouter);
+router.use(moodRouter);
+router.use(jitaiRouter);
 
 export default router;

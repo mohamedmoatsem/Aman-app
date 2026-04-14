@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "wouter";
-import { Phone, BookHeart, CalendarDays, Users, ShieldCheck, HeartHandshake, Mail, Loader2, CheckCircle2, MessageCircleHeart } from "lucide-react";
+import { Phone, BookHeart, CalendarDays, Users, ShieldCheck, HeartHandshake, Mail, Loader2, CheckCircle2, MessageCircleHeart, X, ArrowLeft } from "lucide-react";
 import MobileLayout from "@/components/layout/MobileLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+const MOOD_SCORES = [1, 2, 3, 5];
 
 const moodColors = [
   {
@@ -31,6 +33,27 @@ const moodColors = [
   },
 ];
 
+const JITAI_COLORS: Record<string, { border: string; bg: string; btn: string; badge: string }> = {
+  emerald: {
+    border: "border-emerald-200",
+    bg: "bg-emerald-50",
+    btn: "bg-emerald-500 hover:bg-emerald-600 text-white",
+    badge: "bg-emerald-100 text-emerald-700",
+  },
+  sky: {
+    border: "border-sky-200",
+    bg: "bg-sky-50",
+    btn: "bg-sky-500 hover:bg-sky-600 text-white",
+    badge: "bg-sky-100 text-sky-700",
+  },
+  violet: {
+    border: "border-violet-200",
+    bg: "bg-violet-50",
+    btn: "bg-violet-500 hover:bg-violet-600 text-white",
+    badge: "bg-violet-100 text-violet-700",
+  },
+};
+
 const quickLinkIcons = [BookHeart, CalendarDays, Users, ShieldCheck];
 const quickLinkColors = [
   { color: "text-emerald-500", bg: "bg-emerald-500/10", href: "/resources" },
@@ -39,14 +62,92 @@ const quickLinkColors = [
   { color: "text-indigo-500", bg: "bg-indigo-500/10", href: "/resources" },
 ];
 
+function getDeviceId(): string {
+  const key = "aman_device_id";
+  let id = localStorage.getItem(key);
+  if (!id) {
+    id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
+
+interface JitaiIntervention {
+  id: string;
+  titleAr: string;
+  messageAr: string;
+  actionAr: string;
+  actionPath: string;
+  icon: string;
+  color: string;
+}
+
 export default function Home() {
   const { t, toggleLang } = useLanguage();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [email, setEmail] = useState("");
   const [subStatus, setSubStatus] = useState<"idle" | "loading" | "success" | "duplicate" | "error">("idle");
+  const [moodSaved, setMoodSaved] = useState(false);
+  const [jitai, setJitai] = useState<JitaiIntervention | null>(null);
+  const [jitaiVisible, setJitaiVisible] = useState(false);
 
   const currentMood = selectedMood !== null ? t.moods[selectedMood] : null;
   const currentMoodStyle = selectedMood !== null ? moodColors[selectedMood] : null;
+
+  const checkJitai = useCallback(async (userId: string) => {
+    try {
+      const res = await fetch(`/api/jitai/${encodeURIComponent(userId)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.triggered && data.intervention) {
+        setJitai(data.intervention);
+        setJitaiVisible(true);
+      }
+    } catch {
+      // silent
+    }
+  }, []);
+
+  useEffect(() => {
+    const userId = getDeviceId();
+    checkJitai(userId);
+  }, [checkJitai]);
+
+  async function handleMoodSelect(index: number) {
+    const next = selectedMood === index ? null : index;
+    setSelectedMood(next);
+    setMoodSaved(false);
+
+    if (next === null) return;
+
+    const userId = getDeviceId();
+    const moodLabel = t.moods[next]?.label ?? "";
+
+    try {
+      await fetch("/api/mood", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, moodIndex: next, moodLabel }),
+      });
+      setMoodSaved(true);
+      setTimeout(() => checkJitai(userId), 500);
+    } catch {
+      // silent fail – mood UI still works offline
+    }
+  }
+
+  async function handleJitaiAccept() {
+    const userId = getDeviceId();
+    try {
+      await fetch("/api/jitai/accepted", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+    } catch {
+      // silent
+    }
+  }
 
   async function handleSubscribe(e: React.FormEvent) {
     e.preventDefault();
@@ -71,6 +172,8 @@ export default function Home() {
     }
   }
 
+  const jitaiStyle = jitai ? (JITAI_COLORS[jitai.color] ?? JITAI_COLORS.emerald) : null;
+
   return (
     <MobileLayout>
       <div className="relative min-h-[40vh] w-full bg-primary flex flex-col justify-end overflow-hidden">
@@ -85,7 +188,6 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 px-6 pb-10 pt-16 flex flex-col text-white">
-          {/* Language toggle */}
           <button
             onClick={toggleLang}
             className="absolute top-5 right-5 text-xs font-bold px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 active:scale-95 transition-all"
@@ -137,6 +239,43 @@ export default function Home() {
 
       <div className="px-6 py-8 pb-12 rounded-t-[32px] bg-background -mt-6 relative z-20 flex flex-col gap-8 shadow-[0_-8px_30px_rgba(0,0,0,0.05)]">
 
+        {/* JITAI Intervention Banner */}
+        {jitaiVisible && jitai && jitaiStyle && (
+          <section className={`relative border-2 rounded-3xl p-5 shadow-sm transition-all ${jitaiStyle.border} ${jitaiStyle.bg}`}>
+            <button
+              onClick={() => setJitaiVisible(false)}
+              className="absolute top-3 left-3 w-7 h-7 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors"
+              aria-label="إغلاق"
+            >
+              <X className="w-4 h-4 text-foreground/60" />
+            </button>
+
+            <div className="flex items-start gap-3 mb-4 pr-2">
+              <span className="text-3xl leading-none">{jitai.icon}</span>
+              <div>
+                <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full mb-2 inline-block ${jitaiStyle.badge}`}>
+                  تدخل مخصص لك
+                </span>
+                <h3 className="font-extrabold text-base text-foreground leading-snug">
+                  {jitai.titleAr}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                  {jitai.messageAr}
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href={jitai.actionPath as any}
+              onClick={handleJitaiAccept}
+              className={`flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 ${jitaiStyle.btn}`}
+            >
+              <span>{jitai.actionAr}</span>
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+          </section>
+        )}
+
         {/* Mood Checker */}
         <section className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm">
           <div className="text-center mb-5">
@@ -148,7 +287,7 @@ export default function Home() {
             {t.moods.map((mood, i) => (
               <button
                 key={i}
-                onClick={() => setSelectedMood(selectedMood === i ? null : i)}
+                onClick={() => handleMoodSelect(i)}
                 className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
                   selectedMood === i ? moodColors[i].selectedColor : moodColors[i].color
                 }`}
@@ -162,7 +301,15 @@ export default function Home() {
           {currentMood && currentMoodStyle && (
             <div className={`flex items-start gap-3 p-4 rounded-2xl border text-sm leading-relaxed font-medium transition-all duration-300 ${currentMoodStyle.responseColor}`}>
               <span className="text-xl shrink-0">{currentMoodStyle.icon}</span>
-              <p>{currentMood.response}</p>
+              <div className="flex-1">
+                <p>{currentMood.response}</p>
+                {moodSaved && (
+                  <p className="text-xs mt-2 opacity-60 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    تم حفظ حالتك المزاجية
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </section>
