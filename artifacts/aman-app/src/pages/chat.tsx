@@ -51,8 +51,11 @@ export default function Chat() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  // Build valid history: skip initial greeting (id=0), only include prior turns
   const getHistory = (msgs: Message[]) =>
-    msgs.map((m) => ({ role: m.role, parts: [{ text: m.text }] }));
+    msgs
+      .filter((m) => m.id !== 0)
+      .map((m) => ({ role: m.role, parts: [{ text: m.text }] }));
 
   const handleSend = async (text: string) => {
     const trimmed = text.trim();
@@ -66,8 +69,9 @@ export default function Chat() {
     setLoading(true);
 
     try {
-      const history = getHistory([...messages, userMsg]);
-      const reply = await sendChatMessage(trimmed, history.slice(0, -1));
+      // Pass history of previous messages only (not the current userMsg)
+      const history = getHistory(messages);
+      const reply = await sendChatMessage(trimmed, history);
       setMessages((prev) => [...prev, { id: nextId.current++, role: "model", text: reply }]);
     } catch {
       setError("ما قدرنا نوصل للخادم، جرّب مرة ثانية");

@@ -38,34 +38,32 @@ function removeDuplicateSentences(text: string): string {
 }
 
 function cleanReply(raw: string): string {
-  let text = raw;
+  // Split into lines and remove any line that starts with English words
+  // (these are internal reasoning lines like "Final Polish:", "Option 1:", etc.)
+  const lines = raw.split("\n").filter((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return false;
+    // Drop lines starting with ASCII letters (English reasoning)
+    if (/^[A-Za-z*]/.test(trimmed)) return false;
+    // Drop lines that are mostly English
+    const arabicChars = (trimmed.match(/[\u0600-\u06FF]/g) || []).length;
+    const totalChars = trimmed.replace(/\s/g, "").length;
+    if (totalChars > 0 && arabicChars / totalChars < 0.3) return false;
+    return true;
+  });
 
-  // Strip reasoning prefixes like "Final selection:*", "Final answer:", "Option 1:", etc.
-  text = text.replace(/^.{0,60}?(?:selection|answer|option|refin)[^:]*:\*?\s*/gim, "");
+  let text = lines.join(" ").trim();
 
-  // Remove markdown formatting (**, *, bullets)
+  // Remove markdown formatting
   text = text
     .replace(/\*\*([^*]+)\*\*/g, "$1")
     .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/^\s*\*\s+/gm, "")
-    .replace(/^\s*[-•]\s*/gm, "");
+    .replace(/^\s*[-•*]\s+/gm, "");
 
-  // Remove leading/trailing quotes and extra whitespace
-  text = text.replace(/^["'"«]+|["'"»]+$/g, "").trim();
+  // Remove leading/trailing quotes
+  text = text.replace(/^["'"«\s]+|["'"»\s]+$/g, "").trim();
 
-  // If still has multi-paragraph, pick last good Arabic paragraph
-  const paragraphs = text.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
-  if (paragraphs.length > 1) {
-    for (let i = paragraphs.length - 1; i >= 0; i--) {
-      const p = paragraphs[i];
-      if (/[\u0600-\u06FF]/.test(p)) {
-        text = p.replace(/\n/g, " ").trim();
-        break;
-      }
-    }
-  }
-
-  return removeDuplicateSentences(text.replace(/\n/g, " ").trim());
+  return removeDuplicateSentences(text);
 }
 
 router.post("/chat", async (req, res) => {
@@ -90,9 +88,41 @@ router.post("/chat", async (req, res) => {
       },
     });
 
-    const chat = model.startChat({ history });
+    // Gemini requires history to start with 'user' and alternate user/model
+    // Remove any leading 'model' turns and ensure alternation
+    let cleanHistory = history.filter(
+      (h) => h.parts?.length > 0 && h.parts[0]?.text?.trim()
+    );
+    // Drop leading model messages
+    while (cleanHistory.length > 0 && cleanHistory[0].role === "model") {
+      cleanHistory = cleanHistory.slice(1);
+    }
+    // Ensure strict alternation (drop consecutive same-role entries)
+    const validHistory: typeof cleanHistory = [];
+    for (const turn of cleanHistory) {
+      const last = validHistory[validHistory.length - 1];
+      if (!last || last.role !== turn.role) {
+        validHistory.push(turn);
+      }
+    }
+
+    const chat = model.startChat({ history: validHistory });
     const result = await chat.sendMessage(message.trim());
-    const raw = result.response.text();
+
+    // For thinking models (Gemma 4), extract only non-thought parts
+    let raw = "";
+    const candidate = result.response.candidates?.[0];
+    if (candidate?.content?.parts) {
+      const nonThoughtParts = candidate.content.parts.filter(
+        (p: any) => !p.thought && p.text
+      );
+      raw = nonThoughtParts.length > 0
+        ? nonThoughtParts.map((p: any) => p.text).join(" ")
+        : result.response.text();
+    } else {
+      raw = result.response.text();
+    }
+
     const reply = cleanReply(raw);
 
     return res.json({ reply });
