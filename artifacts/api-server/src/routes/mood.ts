@@ -13,15 +13,13 @@ const MOOD_SCORES: Record<number, number> = {
 };
 
 async function ensureUser(deviceId: string) {
-  const existing = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.deviceId, deviceId))
-    .limit(1);
+  await db.insert(usersTable).values({ deviceId }).onConflictDoNothing();
+}
 
-  if (existing.length === 0) {
-    await db.insert(usersTable).values({ deviceId }).onConflictDoNothing();
-  }
+function getSudanDate(): string {
+  const now = new Date();
+  const sudanTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+  return sudanTime.toISOString().split("T")[0];
 }
 
 router.post("/mood", async (req, res) => {
@@ -38,7 +36,7 @@ router.post("/mood", async (req, res) => {
 
     await ensureUser(userId);
 
-    const today = new Date().toISOString().split("T")[0];
+    const today = getSudanDate();
     const score = MOOD_SCORES[moodIndex] ?? 3;
 
     const existing = await db

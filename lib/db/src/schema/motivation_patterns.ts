@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, date, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -14,7 +14,9 @@ export const motivationPatternsTable = pgTable("motivation_patterns", {
   jitaiTriggered: boolean("jitai_triggered").default(false),
   jitaiAccepted: boolean("jitai_accepted").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => [
+  uniqueIndex("motivation_patterns_user_date_idx").on(t.userId, t.logDate),
+]);
 
 export const insertMotivationPatternSchema = createInsertSchema(motivationPatternsTable).omit({ id: true, createdAt: true });
 export type InsertMotivationPattern = z.infer<typeof insertMotivationPatternSchema>;

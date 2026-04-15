@@ -3,6 +3,12 @@ import { db } from "@workspace/db";
 import { moodLogsTable, motivationPatternsTable } from "@workspace/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 
+function getSudanDate(): string {
+  const now = new Date();
+  const sudanTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+  return sudanTime.toISOString().split("T")[0];
+}
+
 const router: IRouter = Router();
 
 const LOW_MOOD_THRESHOLD = 2;
@@ -97,19 +103,11 @@ router.get("/jitai/:userId", async (req, res) => {
       return res.json({ triggered: false });
     }
 
-    const today = new Date().toISOString().split("T")[0];
-    const existingPattern = await db
-      .select()
-      .from(motivationPatternsTable)
-      .where(and(eq(motivationPatternsTable.userId, userId), eq(motivationPatternsTable.logDate, today)))
-      .limit(1);
-
-    if (!existingPattern.length) {
-      await db
-        .insert(motivationPatternsTable)
-        .values({ userId, logDate: today, jitaiTriggered: true })
-        .onConflictDoNothing();
-    }
+    const today = getSudanDate();
+    await db
+      .insert(motivationPatternsTable)
+      .values({ userId, logDate: today, jitaiTriggered: true })
+      .onConflictDoNothing();
 
     const daysSince = logs.filter((l) => l.score <= LOW_MOOD_THRESHOLD).length;
     const intervention = INTERVENTIONS[daysSince % INTERVENTIONS.length];
@@ -130,11 +128,14 @@ router.post("/jitai/accepted", async (req, res) => {
     const { userId } = req.body as { userId: string };
     if (!userId) return res.status(400).json({ error: "userId مطلوب" });
 
-    const today = new Date().toISOString().split("T")[0];
+    const today = getSudanDate();
     await db
       .insert(motivationPatternsTable)
       .values({ userId, logDate: today, jitaiTriggered: true, jitaiAccepted: true })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: [motivationPatternsTable.userId, motivationPatternsTable.logDate],
+        set: { jitaiAccepted: true },
+      });
 
     return res.json({ ok: true });
   } catch (err: any) {
