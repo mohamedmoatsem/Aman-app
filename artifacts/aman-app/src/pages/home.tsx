@@ -392,6 +392,40 @@ export default function Home() {
             <p className="text-foreground/80 leading-relaxed text-sm">{t.home.tipText}</p>
           </div>
         </section>
+
+        {/* Presentation Links */}
+        <section>
+          <h2 className="text-lg font-bold text-foreground mb-4">🎯 عرض التقديم</h2>
+          <div className="flex flex-col gap-3">
+            <Link
+              href="/stats"
+              className="flex items-center gap-4 p-4 bg-gradient-to-l from-sky-50 to-emerald-50 border border-sky-200 rounded-2xl hover:shadow-md active:scale-[0.98] transition-all"
+            >
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-400 to-emerald-400 flex items-center justify-center shrink-0 text-xl shadow-sm">
+                📊
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-sky-700">الإحصائيات الحية</h3>
+                <p className="text-xs text-sky-600/80 mt-0.5">أثر أمان في الوقت الفعلي — عدد المستخدمين، المزاج، JITAI</p>
+              </div>
+              <ArrowLeft className="w-4 h-4 text-sky-400" />
+            </Link>
+
+            <Link
+              href="/video"
+              className="flex items-center gap-4 p-4 bg-gradient-to-l from-violet-50 to-indigo-50 border border-violet-200 rounded-2xl hover:shadow-md active:scale-[0.98] transition-all"
+            >
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shrink-0 text-xl shadow-sm">
+                🎬
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-violet-700">فيديو تعريفي بأمان</h3>
+                <p className="text-xs text-violet-600/80 mt-0.5">المشكلة ← الحل ← الميزات ← الأثر المتوقع (دقيقتان)</p>
+              </div>
+              <ArrowLeft className="w-4 h-4 text-violet-400" />
+            </Link>
+          </div>
+        </section>
       </div>
     </MobileLayout>
   );

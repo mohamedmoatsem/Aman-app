@@ -7,6 +7,7 @@ import subscribeRouter from "./subscribe";
 import chatRouter from "./chat";
 import moodRouter from "./mood";
 import jitaiRouter from "./jitai";
+import statsRouter from "./stats";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(subscribeRouter);
 router.use(chatRouter);
 router.use(moodRouter);
 router.use(jitaiRouter);
+router.use(statsRouter);
 
 export default router;

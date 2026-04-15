@@ -15,6 +15,9 @@ const QUICK_PROMPTS = [
   "محتاج أتكلم مع أحد",
 ];
 
+const PTSD_DEMO_MESSAGE =
+  "من فترة ما قادر أنام بسبب أشياء صعبة مريت بيها. كل ما أحاول أنام تيجيني صور وذكريات مؤلمة وأقوم خايف ومتعرق. النهار دا ما قدرت أركّز في أي شيء وحاسس إن أي صوت كبير بخوّفني. ما عارف أتكلم مع أحد عن اللي حصل.";
+
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
 async function sendChatMessage(
@@ -124,16 +127,38 @@ export default function Chat() {
 
         {/* Quick prompts – only when just started */}
         {messages.length === 1 && (
-          <div className="flex flex-wrap gap-2 justify-center mt-1">
-            {QUICK_PROMPTS.map((q) => (
+          <div className="flex flex-col gap-3 mt-1">
+            {/* PTSD Quick Demo button */}
+            <div className="bg-violet-50 border border-violet-200 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">🧠</span>
+                <span className="text-xs font-bold text-violet-700">تجربة سريعة — محاكاة حالة صدمة نفسية</span>
+              </div>
+              <p className="text-[11px] text-violet-600 mb-3 leading-relaxed">
+                اضغط لترى كيف يستجيب المساعد لشخص يعاني من أعراض ما بعد الصدمة (PTSD) بتمارين EMDR
+              </p>
               <button
-                key={q}
-                onClick={() => handleSend(q)}
-                className="text-xs font-medium px-3 py-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 transition-all border border-primary/20"
+                onClick={() => handleSend(PTSD_DEMO_MESSAGE)}
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-violet-500 hover:bg-violet-600 text-white text-sm font-bold active:scale-95 transition-all disabled:opacity-50"
               >
-                {q}
+                <span>🚀</span>
+                <span>ابدأ التجربة السريعة</span>
               </button>
-            ))}
+            </div>
+
+            {/* Regular quick prompts */}
+            <div className="flex flex-wrap gap-2 justify-center">
+              {QUICK_PROMPTS.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => handleSend(q)}
+                  className="text-xs font-medium px-3 py-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 transition-all border border-primary/20"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
