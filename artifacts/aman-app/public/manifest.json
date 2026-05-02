@@ -1,20 +1,35 @@
 {
-  "short_name": "Aman",
-  "name": "أمان - دعم نفسي ذكي",
+  "name": "أمان — دعم نفسي ذكي",
+  "short_name": "أمان",
+  "description": "دعم الصحة النفسية للمتضررين من النزاعات",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0EA5E9",
+  "background_color": "#ffffff",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["health", "lifestyle"],
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
     },
     {
-      "src": "logo192.png",
+      "src": "images/logo.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "images/logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "screenshots": [],
+  "prefer_related_applications": false
 }

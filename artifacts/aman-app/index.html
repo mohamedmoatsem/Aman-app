@@ -1,43 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>تطبيق أمان</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0EA5E9" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="أمان" />
+    <link rel="apple-touch-icon" href="/images/logo.png" />
+
+    <!-- SEO -->
+    <meta name="description" content="دعم الصحة النفسية للمتضررين من النزاعات" />
+    <meta property="og:title" content="أمان — دعم نفسي ذكي" />
+    <meta property="og:description" content="دعم الصحة النفسية للمتضررين من النزاعات" />
+    <meta property="og:image" content="/opengraph.jpg" />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-
-    <div id="articleModal" class="modal">
-      <div class="modal-content">
-        <span class="close-button" onclick="closeArticle()">&times;</span>
-        <h2 id="modalTitle"></h2>
-        <div id="modalBody"></div>
-      </div>
-    </div>
-
-    <script>
-      function openArticle(title, content) {
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalBody').innerHTML = content;
-        document.getElementById('articleModal').style.display = "block";
-      }
-
-      function closeArticle() {
-        document.getElementById('articleModal').style.display = "none";
-      }
-
-      window.onclick = function(event) {
-        let modal = document.getElementById('articleModal');
-        if (event.target == modal) {
-          modal.style.display = "none";
-        }
-      }
-    </script>
   </body>
 </html>

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
-import { ArrowRight, ArrowLeft, Send, Bot, Loader2, AlertTriangle, Users, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowLeft, Send, Bot, Loader2, AlertTriangle, Users, Sparkles, WifiOff } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 interface Message {
   id: number;
@@ -32,6 +33,8 @@ export default function Assistant() {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
   const a = t.assistant;
+  const isRtl = t.dir === "rtl";
+  const isOnline = useOnlineStatus();
 
   const [messages, setMessages] = useState<Message[]>([
     { id: 0, role: "model", text: a.welcomeMsg },
@@ -64,6 +67,14 @@ export default function Assistant() {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
+    if (!isOnline) {
+      setError(isRtl
+        ? "لا يوجد اتصال بالإنترنت — المحادثة الذكية تحتاج اتصالاً"
+        : "No internet connection — AI chat requires connectivity"
+      );
+      return;
+    }
+
     setInput("");
     setError(null);
     checkCriticalState(trimmed);
@@ -94,10 +105,22 @@ export default function Assistant() {
     }
   };
 
-  const BackArrow = t.dir === "rtl" ? ArrowRight : ArrowLeft;
+  const BackArrow = isRtl ? ArrowRight : ArrowLeft;
 
   return (
     <div className="flex flex-col h-screen w-full bg-background" dir={t.dir}>
+
+      {/* Offline banner */}
+      {!isOnline && (
+        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-amber-500 text-white text-xs font-semibold">
+          <WifiOff className="w-3.5 h-3.5 shrink-0 animate-pulse" />
+          <span>
+            {isRtl
+              ? "أنت غير متصل — المحادثة الذكية تحتاج اتصالاً بالإنترنت"
+              : "You're offline — AI chat requires an internet connection"}
+          </span>
+        </div>
+      )}
 
       {/* Header */}
       <div className="shrink-0 bg-gradient-to-l from-primary/10 to-emerald-500/5 border-b border-border px-4 py-3 flex items-center gap-3">
@@ -112,16 +135,16 @@ export default function Assistant() {
         </div>
         <div className="flex-1">
           <h1 className="font-bold text-foreground text-base leading-tight">{a.title}</h1>
-          <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-            {a.subtitle}
+          <p className={`text-[11px] font-medium flex items-center gap-1 ${isOnline ? "text-emerald-600" : "text-amber-500"}`}>
+            <span className={`w-1.5 h-1.5 rounded-full inline-block ${isOnline ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+            {isOnline ? a.subtitle : (isRtl ? "غير متصل" : "Offline")}
           </p>
         </div>
 
         {/* PTSD Demo Button */}
         <button
           onClick={() => handleSend(PTSD_DEMO_MESSAGE)}
-          disabled={loading}
+          disabled={loading || !isOnline}
           className="flex items-center gap-1.5 bg-violet-100 text-violet-700 hover:bg-violet-200 text-[10px] font-bold px-2.5 py-1.5 rounded-xl transition-all active:scale-95 disabled:opacity-50"
           title="PTSD Demo"
         >
@@ -164,7 +187,8 @@ export default function Assistant() {
             <button
               key={p}
               onClick={() => handleSend(p)}
-              className="bg-muted hover:bg-primary/10 hover:text-primary border border-border text-foreground text-xs font-medium px-3 py-2 rounded-2xl transition-all active:scale-95"
+              disabled={!isOnline}
+              className="bg-muted hover:bg-primary/10 hover:text-primary border border-border text-foreground text-xs font-medium px-3 py-2 rounded-2xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {p}
             </button>
@@ -219,24 +243,31 @@ export default function Assistant() {
 
       {/* Input Area */}
       <div className="shrink-0 border-t bg-background/95 backdrop-blur px-4 py-3">
-        <div className="flex items-end gap-2 bg-muted rounded-3xl px-4 py-2 border focus-within:border-primary transition-colors">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={a.placeholder}
-            rows={1}
-            className="flex-1 bg-transparent resize-none text-sm outline-none py-1 max-h-28"
-          />
-          <button
-            onClick={() => handleSend(input)}
-            disabled={!input.trim() || loading}
-            className="w-9 h-9 rounded-2xl bg-primary flex items-center justify-center disabled:opacity-40 transition-opacity shrink-0"
-          >
-            <Send className="w-4 h-4 text-white" />
-          </button>
-        </div>
+        {!isOnline ? (
+          <div className="flex items-center justify-center gap-2 py-3 text-amber-600 text-xs font-medium bg-amber-50 rounded-2xl border border-amber-200">
+            <WifiOff className="w-4 h-4" />
+            <span>{isRtl ? "المحادثة الذكية تحتاج اتصالاً بالإنترنت" : "AI chat requires an internet connection"}</span>
+          </div>
+        ) : (
+          <div className="flex items-end gap-2 bg-muted rounded-3xl px-4 py-2 border focus-within:border-primary transition-colors">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={a.placeholder}
+              rows={1}
+              className="flex-1 bg-transparent resize-none text-sm outline-none py-1 max-h-28"
+            />
+            <button
+              onClick={() => handleSend(input)}
+              disabled={!input.trim() || loading}
+              className="w-9 h-9 rounded-2xl bg-primary flex items-center justify-center disabled:opacity-40 transition-opacity shrink-0"
+            >
+              <Send className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

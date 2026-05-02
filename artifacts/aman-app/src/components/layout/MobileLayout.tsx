@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import BottomNav from "./BottomNav";
+import OfflineBanner from "@/components/ui/OfflineBanner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -19,6 +20,8 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
       style={{ textAlign: t.dir === "rtl" ? "right" : "left" }}
     >
       <div className="w-full max-w-2xl min-h-screen bg-background shadow-2xl relative flex flex-col overflow-x-hidden font-sans">
+        <OfflineBanner />
+
         <main className="flex-1 overflow-y-auto pb-[80px]">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
