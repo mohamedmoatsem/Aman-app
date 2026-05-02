@@ -17,6 +17,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export default function Community() {
   const { t } = useLanguage();
   const c = t.community;
+  const isRtl = t.dir === "rtl";
 
   const postSchema = z.object({
     title: z.string().min(3, c.validTitle).max(100, c.validTitleMax),
@@ -41,12 +42,17 @@ export default function Community() {
       toast({ title: c.toastTitle, description: c.toastDesc });
       setIsDialogOpen(false);
       reset();
-    } catch {
-      toast({ title: c.toastErrorTitle, description: c.toastErrorDesc, variant: "destructive" });
+    } catch (err: any) {
+      toast({
+        title: c.toastErrorTitle,
+        description: err?.message || c.toastErrorDesc,
+        variant: "destructive",
+      });
     }
   };
 
   const getRelativeTime = (dateString: string) => {
+    if (!dateString) return c.recentlyLabel;
     try {
       return formatDistanceToNow(parseISO(dateString), { addSuffix: true, locale: dateLocale });
     } catch {
@@ -58,9 +64,10 @@ export default function Community() {
     <MobileLayout>
       <Header title={c.pageTitle} />
 
-      <div className="px-4 py-6 pb-24 flex flex-col gap-4">
+      <div className="px-4 py-6 pb-28 flex flex-col gap-4" dir={t.dir}>
 
-        {isLoading && Array.from({ length: 4 }).map((_, i) => (
+        {/* Loading skeletons */}
+        {isLoading && Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="p-5 bg-card rounded-3xl border border-border shadow-sm flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <Skeleton className="w-10 h-10 rounded-full" />
@@ -71,10 +78,11 @@ export default function Community() {
             </div>
             <Skeleton className="h-5 w-3/4 mt-2" />
             <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
           </div>
         ))}
 
+        {/* Error */}
         {error && (
           <div className="p-6 bg-destructive/10 text-destructive rounded-3xl flex flex-col items-center justify-center text-center gap-3">
             <AlertCircle className="w-10 h-10" />
@@ -82,6 +90,7 @@ export default function Community() {
           </div>
         )}
 
+        {/* Posts list */}
         {posts?.map((post) => (
           <article
             key={post.id}
@@ -93,7 +102,9 @@ export default function Community() {
                   <User className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-foreground">{post.authorName}</h4>
+                  <h4 className="font-bold text-sm text-foreground">
+                    {post.authorName || c.recentlyLabel}
+                  </h4>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                     <Clock className="w-3 h-3" />
                     <span>{getRelativeTime(post.createdAt)}</span>
@@ -104,13 +115,16 @@ export default function Community() {
 
             <div className="pt-1">
               <h3 className="font-bold text-base mb-2 text-foreground">{post.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
+                {post.content}
+              </p>
             </div>
           </article>
         ))}
 
-        {posts?.length === 0 && (
-          <div className="py-16 flex flex-col items-center justify-center text-center opacity-50 px-4">
+        {/* Empty state */}
+        {!isLoading && !error && posts?.length === 0 && (
+          <div className="py-16 flex flex-col items-center justify-center text-center opacity-60 px-4">
             <MessageSquarePlus className="w-12 h-12 mb-4 text-primary" />
             <h3 className="font-bold text-lg mb-1">{c.emptyTitle}</h3>
             <p className="text-sm">{c.emptyDesc}</p>
@@ -119,61 +133,85 @@ export default function Community() {
       </div>
 
       {/* Floating Action Button */}
-      <div className="fixed bottom-24 right-0 w-full max-w-[430px] z-30 pointer-events-none px-6">
-        <div className="flex justify-start">
+      <div className="fixed bottom-24 left-0 right-0 max-w-[430px] mx-auto z-30 pointer-events-none px-6">
+        <div className={`flex ${isRtl ? "justify-start" : "justify-end"}`}>
           <button
             onClick={() => setIsDialogOpen(true)}
-            className="pointer-events-auto flex items-center justify-center w-14 h-14 bg-secondary text-white rounded-full shadow-[0_8px_20px_rgba(16,185,129,0.3)] hover:scale-105 active:scale-95 transition-all"
+            className="pointer-events-auto flex items-center gap-2 bg-primary text-white rounded-full shadow-[0_8px_20px_rgba(14,165,233,0.35)] hover:scale-105 active:scale-95 transition-all px-5 py-3.5"
             aria-label={c.dialogTitle}
           >
-            <MessageSquarePlus className="w-6 h-6" />
+            <MessageSquarePlus className="w-5 h-5" />
+            <span className="text-sm font-bold">{c.dialogTitle}</span>
           </button>
         </div>
       </div>
 
       {/* Create Post Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} dir={t.dir}>
         <DialogHeader>
           <DialogTitle>{c.dialogTitle}</DialogTitle>
           <DialogDescription>{c.dialogDesc}</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-2 overflow-y-auto">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 overflow-y-auto">
+
+          {/* Author name */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-bold text-foreground">{c.nameLabel}</label>
             <input
               {...register("authorName")}
-              className="w-full bg-muted/50 border-2 border-transparent focus:border-primary/50 focus:bg-background rounded-xl px-4 py-3 outline-none transition-all"
+              className="w-full bg-muted/50 border-2 border-transparent focus:border-primary/50 focus:bg-background rounded-xl px-4 py-3 outline-none transition-all text-sm"
               placeholder={c.namePlaceholder}
+              dir={t.dir}
             />
-            {errors.authorName && <span className="text-xs text-destructive">{errors.authorName.message}</span>}
+            {errors.authorName && (
+              <span className="text-xs text-destructive">{errors.authorName.message}</span>
+            )}
           </div>
 
+          {/* Title */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-bold text-foreground">{c.titleLabel}</label>
             <input
               {...register("title")}
-              className="w-full bg-muted/50 border-2 border-transparent focus:border-primary/50 focus:bg-background rounded-xl px-4 py-3 outline-none transition-all"
+              className="w-full bg-muted/50 border-2 border-transparent focus:border-primary/50 focus:bg-background rounded-xl px-4 py-3 outline-none transition-all text-sm"
               placeholder={c.titlePlaceholder}
+              dir={t.dir}
             />
-            {errors.title && <span className="text-xs text-destructive">{errors.title.message}</span>}
+            {errors.title && (
+              <span className="text-xs text-destructive">{errors.title.message}</span>
+            )}
           </div>
 
+          {/* Content */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-bold text-foreground">{c.contentLabel}</label>
             <textarea
               {...register("content")}
-              className="w-full bg-muted/50 border-2 border-transparent focus:border-primary/50 focus:bg-background rounded-xl px-4 py-3 outline-none transition-all min-h-[120px] resize-none"
+              className="w-full bg-muted/50 border-2 border-transparent focus:border-primary/50 focus:bg-background rounded-xl px-4 py-3 outline-none transition-all min-h-[110px] resize-none text-sm leading-relaxed"
               placeholder={c.contentPlaceholder}
+              dir={t.dir}
             />
-            {errors.content && <span className="text-xs text-destructive">{errors.content.message}</span>}
+            {errors.content && (
+              <span className="text-xs text-destructive">{errors.content.message}</span>
+            )}
           </div>
 
-          <div className="mt-4 pt-4 border-t border-border flex gap-3">
-            <Button type="submit" className="flex-1 rounded-xl" disabled={isSubmitting}>
-              {isSubmitting ? c.publishing : c.publish}
+          {/* Actions */}
+          <div className="mt-2 pt-4 border-t border-border flex gap-3">
+            <Button
+              type="submit"
+              className="flex-1 rounded-xl"
+              disabled={isSubmitting || createPost.isPending}
+            >
+              {(isSubmitting || createPost.isPending) ? c.publishing : c.publish}
             </Button>
-            <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => setIsDialogOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => { setIsDialogOpen(false); reset(); }}
+            >
               {c.cancel}
             </Button>
           </div>
