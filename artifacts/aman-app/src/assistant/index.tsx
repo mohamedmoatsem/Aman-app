@@ -1,19 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
-import { ArrowRight, Send, Bot, Loader2, AlertTriangle, Users, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowLeft, Send, Bot, Loader2, AlertTriangle, Users, Sparkles } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Message {
   id: number;
   role: "user" | "model";
   text: string;
 }
-
-const QUICK_PROMPTS = [
-  "حاسس بضغط اليوم",
-  "ما قادر أنام",
-  "زهقت من كل شيء",
-  "محتاج أتكلم مع أحد",
-];
 
 const PTSD_DEMO_MESSAGE =
   "من فترة ما قادر أنام بسبب أشياء صعبة مريت بيها. كل ما أحاول أنام تيجيني صور وذكريات مؤلمة وأقوم خايف ومتعرق. النهار دا ما قدرت أركّز في أي شيء وحاسس إن أي صوت كبير بخوّفني. ما عارف أتكلم مع أحد عن اللي حصل.";
@@ -36,12 +30,11 @@ async function sendChatMessage(
 
 export default function Assistant() {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
+  const a = t.assistant;
+
   const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 0,
-      role: "model",
-      text: "السلام عليكم! أنا مساعد أمان، رفيقك في أي وقت محتاج فيه حد يسمعك 🌿\nقولي شنو في بالك اليوم؟",
-    },
+    { id: 0, role: "model", text: a.welcomeMsg },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -56,8 +49,8 @@ export default function Assistant() {
   }, [messages, loading]);
 
   const checkCriticalState = (text: string) => {
-    const criticalWords = ["موت", "انتحار", "اذى", "أذى", "يأس", "صدمة", "تعبت شديد", "ما قادر اعيش"];
-    if (criticalWords.some((word) => text.includes(word))) {
+    const criticalWords = ["موت", "انتحار", "اذى", "أذى", "يأس", "صدمة", "تعبت شديد", "ما قادر اعيش", "suicide", "harm", "hopeless", "can't go on"];
+    if (criticalWords.some((word) => text.toLowerCase().includes(word))) {
       setShowReferral(true);
     }
   };
@@ -84,11 +77,11 @@ export default function Assistant() {
       const reply = await sendChatMessage(trimmed, history);
       setMessages((prev) => [...prev, { id: nextId.current++, role: "model", text: reply }]);
 
-      if (reply.includes("مختص") || reply.includes("طبيب")) {
+      if (reply.includes("مختص") || reply.includes("طبيب") || reply.includes("professional") || reply.includes("specialist")) {
         setShowReferral(true);
       }
     } catch {
-      setError("ما قدرنا نوصل للمساعد، جرّب مرة ثانية");
+      setError(a.error);
     } finally {
       setLoading(false);
     }
@@ -101,8 +94,10 @@ export default function Assistant() {
     }
   };
 
+  const BackArrow = t.dir === "rtl" ? ArrowRight : ArrowLeft;
+
   return (
-    <div className="flex flex-col h-screen w-full bg-background" dir="rtl">
+    <div className="flex flex-col h-screen w-full bg-background" dir={t.dir}>
 
       {/* Header */}
       <div className="shrink-0 bg-gradient-to-l from-primary/10 to-emerald-500/5 border-b border-border px-4 py-3 flex items-center gap-3">
@@ -110,16 +105,16 @@ export default function Assistant() {
           onClick={() => navigate("/")}
           className="p-2 rounded-xl hover:bg-muted transition-colors"
         >
-          <ArrowRight className="w-5 h-5 text-muted-foreground" />
+          <BackArrow className="w-5 h-5 text-muted-foreground" />
         </button>
         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shrink-0">
           <Bot className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          <h1 className="font-bold text-foreground text-base leading-tight">مساعد أمان</h1>
+          <h1 className="font-bold text-foreground text-base leading-tight">{a.title}</h1>
           <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-            متاح الآن · ذكاء اصطناعي Gemma
+            {a.subtitle}
           </p>
         </div>
 
@@ -128,10 +123,10 @@ export default function Assistant() {
           onClick={() => handleSend(PTSD_DEMO_MESSAGE)}
           disabled={loading}
           className="flex items-center gap-1.5 bg-violet-100 text-violet-700 hover:bg-violet-200 text-[10px] font-bold px-2.5 py-1.5 rounded-xl transition-all active:scale-95 disabled:opacity-50"
-          title="تجربة سريعة لحالة PTSD"
+          title="PTSD Demo"
         >
           <Sparkles className="w-3 h-3" />
-          عرض PTSD
+          {a.ptsdDemo}
         </button>
       </div>
 
@@ -143,15 +138,13 @@ export default function Assistant() {
               <Users className="w-4 h-4 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-[11px] font-bold text-primary mb-1">هل تحتاج للتحدث مع شخص حقيقي؟</p>
-              <p className="text-[10px] text-muted-foreground leading-relaxed mb-2">
-                مساعد أمان ذكي، لكن بعض الحالات تحتاج لمختصين بشريين.
-              </p>
+              <p className="text-[11px] font-bold text-primary mb-1">{a.referralTitle}</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed mb-2">{a.referralDesc}</p>
               <a
                 href="tel:1212"
                 className="inline-block bg-primary text-white text-[10px] font-bold px-3 py-1.5 rounded-lg hover:opacity-90 transition-all"
               >
-                خط دعم نفسي: 1212
+                {a.referralBtn}
               </a>
             </div>
             <button
@@ -164,10 +157,10 @@ export default function Assistant() {
         </div>
       )}
 
-      {/* Quick Prompts — shown only when no conversation yet */}
+      {/* Quick Prompts */}
       {messages.length === 1 && !loading && (
         <div className="shrink-0 px-4 pt-4 flex flex-wrap gap-2 justify-center">
-          {QUICK_PROMPTS.map((p) => (
+          {a.quickPrompts.map((p) => (
             <button
               key={p}
               onClick={() => handleSend(p)}
@@ -210,7 +203,7 @@ export default function Assistant() {
             </div>
             <div className="bg-card border rounded-3xl rounded-tl-md px-4 py-3 flex items-center gap-2">
               <Loader2 className="w-3 h-3 animate-spin text-primary" />
-              <span>أمان يفكر...</span>
+              <span>{a.thinking}</span>
             </div>
           </div>
         )}
@@ -232,7 +225,7 @@ export default function Assistant() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="احكي لي البدور في راسك..."
+            placeholder={a.placeholder}
             rows={1}
             className="flex-1 bg-transparent resize-none text-sm outline-none py-1 max-h-28"
           />

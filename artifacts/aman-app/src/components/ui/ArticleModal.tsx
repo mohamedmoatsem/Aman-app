@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { X, BookOpen } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ArticleModalProps {
   open: boolean;
@@ -9,6 +10,8 @@ interface ArticleModalProps {
 }
 
 export function ArticleModal({ open, title, body, onClose }: ArticleModalProps) {
+  const { t } = useLanguage();
+
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -21,6 +24,7 @@ export function ArticleModal({ open, title, body, onClose }: ArticleModalProps) 
   if (!open) return null;
 
   const isHtml = body.trim().startsWith("<");
+  const closeLabel = t.dir === "rtl" ? "إغلاق" : "Close";
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
@@ -31,7 +35,7 @@ export function ArticleModal({ open, title, body, onClose }: ArticleModalProps) 
       <div
         className="relative z-[101] w-full max-w-2xl bg-background rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col"
         style={{ maxHeight: "92dvh" }}
-        dir="rtl"
+        dir={t.dir}
       >
         <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-3 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
@@ -43,7 +47,7 @@ export function ArticleModal({ open, title, body, onClose }: ArticleModalProps) 
           <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors shrink-0"
-            aria-label="إغلاق"
+            aria-label={closeLabel}
           >
             <X className="w-5 h-5" />
           </button>
@@ -62,7 +66,7 @@ export function ArticleModal({ open, title, body, onClose }: ArticleModalProps) 
             onClick={onClose}
             className="w-full bg-primary text-primary-foreground font-bold py-3 rounded-2xl hover:opacity-90 active:scale-[0.98] transition-all"
           >
-            إغلاق
+            {closeLabel}
           </button>
         </div>
       </div>

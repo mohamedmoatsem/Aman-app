@@ -10,8 +10,8 @@ export default function BottomNav() {
   const navItems = [
     { href: "/", icon: Home, label: t.nav.home },
     { href: "/resources", icon: BookHeart, label: t.nav.resources },
-    { href: "/chat", icon: Bot, label: "أمان AI" },
-    { href: "/messages", icon: Stethoscope, label: "مختصون" },
+    { href: "/chat", icon: Bot, label: t.appName + " AI" },
+    { href: "/messages", icon: Stethoscope, label: t.professionalsNav },
     { href: "/community", icon: Users, label: t.nav.community },
   ];
 

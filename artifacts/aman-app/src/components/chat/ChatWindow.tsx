@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, UserCircle2, Bot, ShieldCheck } from "lucide-react";
 import { useMessages, getDeviceId, type Message } from "@/hooks/use-messages";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChatWindowProps {
   conversationId: number;
@@ -9,19 +10,17 @@ interface ChatWindowProps {
   isAnonymous?: boolean;
 }
 
-function MessageBubble({ msg, deviceId }: { msg: Message; deviceId: string }) {
-  // Check if this message was sent by the current device
+function MessageBubble({ msg }: { msg: Message }) {
   const isOwn = msg.sender_role === "user";
   const isPro  = msg.sender_role === "professional";
 
-  const time = new Date(msg.timestamp).toLocaleTimeString("ar-EG", {
+  const time = new Date(msg.timestamp).toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
   });
 
   return (
     <div className={`flex items-end gap-2 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
-      {/* Avatar */}
       {!isOwn && (
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shrink-0 mb-1 shadow-sm">
           <Bot className="w-4 h-4 text-white" />
@@ -29,14 +28,12 @@ function MessageBubble({ msg, deviceId }: { msg: Message; deviceId: string }) {
       )}
 
       <div className={`flex flex-col gap-1 max-w-[75%] ${isOwn ? "items-end" : "items-start"}`}>
-        {/* Sender label for professional */}
         {isPro && (
           <span className="text-[10px] text-muted-foreground font-medium px-1">
             {msg.sender_name}
           </span>
         )}
 
-        {/* Bubble */}
         <div
           className={`px-4 py-2.5 rounded-2xl shadow-sm text-sm leading-relaxed ${
             isOwn
@@ -47,15 +44,10 @@ function MessageBubble({ msg, deviceId }: { msg: Message; deviceId: string }) {
           <p>{msg.message_text}</p>
         </div>
 
-        {/* Time + read */}
         <div className={`flex items-center gap-1 text-[10px] text-muted-foreground px-1 ${isOwn ? "flex-row-reverse" : ""}`}>
           <span>{time}</span>
-          {isOwn && msg.is_read && (
-            <span className="text-primary">✓✓</span>
-          )}
-          {isOwn && !msg.is_read && (
-            <span className="opacity-50">✓</span>
-          )}
+          {isOwn && msg.is_read && <span className="text-primary">✓✓</span>}
+          {isOwn && !msg.is_read && <span className="opacity-50">✓</span>}
         </div>
       </div>
     </div>
@@ -64,15 +56,21 @@ function MessageBubble({ msg, deviceId }: { msg: Message; deviceId: string }) {
 
 export default function ChatWindow({
   conversationId,
-  professionalName = "المختص",
-  professionalSpecialty = "مختص نفسي",
+  professionalName,
+  professionalSpecialty,
   isAnonymous = false,
 }: ChatWindowProps) {
   const deviceId = getDeviceId();
+  const { t } = useLanguage();
+  const cw = t.chatWindow;
+
   const { messages, loading, sending, sendMessage } = useMessages(conversationId);
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const defaultName     = professionalName     ?? t.professionals.defaultSpecialty;
+  const defaultSpecialty = professionalSpecialty ?? t.professionals.defaultSpecialty;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -104,15 +102,15 @@ export default function ChatWindow({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-bold text-foreground text-sm truncate">{professionalName}</p>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="متاح" />
+            <p className="font-bold text-foreground text-sm truncate">{defaultName}</p>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           </div>
-          <p className="text-[11px] text-muted-foreground truncate">{professionalSpecialty}</p>
+          <p className="text-[11px] text-muted-foreground truncate">{defaultSpecialty}</p>
         </div>
         {isAnonymous && (
           <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded-full">
             <ShieldCheck className="w-3 h-3" />
-            <span>مجهول</span>
+            <span>{cw.anonymous}</span>
           </div>
         )}
       </div>
@@ -128,12 +126,12 @@ export default function ChatWindow({
         {!loading && messages.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center text-center gap-3 opacity-50 py-8">
             <UserCircle2 className="w-12 h-12 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">ابدأ محادثتك مع المختص</p>
+            <p className="text-sm text-muted-foreground">{cw.startPrompt}</p>
           </div>
         )}
 
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} msg={msg} deviceId={deviceId} />
+          <MessageBubble key={msg.id} msg={msg} />
         ))}
         <div ref={bottomRef} />
       </div>
@@ -150,16 +148,16 @@ export default function ChatWindow({
               e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
             }}
             onKeyDown={handleKeyDown}
-            placeholder="اكتب رسالتك هنا... (Enter للإرسال)"
+            placeholder={cw.placeholder}
             rows={1}
-            dir="rtl"
+            dir={t.dir}
             className="flex-1 resize-none bg-muted/50 border border-border rounded-2xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all max-h-[120px] leading-relaxed"
           />
           <button
             type="submit"
             disabled={!input.trim() || sending}
             className="w-11 h-11 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 hover:opacity-90 active:scale-95 disabled:opacity-40 transition-all shadow-sm"
-            aria-label="إرسال"
+            aria-label={t.chatSection.send}
           >
             {sending ? (
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -169,7 +167,7 @@ export default function ChatWindow({
           </button>
         </form>
         <p className="text-[10px] text-muted-foreground text-center mt-2">
-          محادثتك محمية وسرية تماماً
+          {cw.privacy}
         </p>
       </div>
     </div>
