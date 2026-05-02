@@ -13,6 +13,8 @@ import Stats from "@/pages/stats";
 import Video from "@/pages/video";
 import NotFound from "@/pages/not-found";
 import Assistant from "@/assistant/index";
+import Messages from "@/pages/messages/index";
+import Professionals from "@/pages/messages/professionals/index";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +39,8 @@ function Navigation() {
       <Route path="/assistant" component={Assistant} />
       <Route path="/stats" component={Stats} />
       <Route path="/video" component={Video} />
+      <Route path="/messages" component={Messages} />
+      <Route path="/messages/professionals" component={Professionals} />
       <Route component={NotFound} />
     </Switch>
   );

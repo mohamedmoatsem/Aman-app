@@ -8,6 +8,7 @@ import chatRouter from "./chat.js";
 import communityRouter from "./community.js";
 import workshopsRouter from "./workshops.js";
 import resourcesRouter from "./resources.js";
+import messagesRouter from "./messages.js";
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use(workshopsRouter);
 router.use(resourcesRouter);
 router.use("/subscribe", subscribeRouter);
 router.use("/chat", chatRouter);
+router.use("/messages", messagesRouter);
 
 export default router;

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, BookHeart, CalendarDays, Users, Bot } from "lucide-react";
+import { Home, BookHeart, Users, Bot, Stethoscope } from "lucide-react";
 import { clsx } from "clsx";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -11,7 +11,7 @@ export default function BottomNav() {
     { href: "/", icon: Home, label: t.nav.home },
     { href: "/resources", icon: BookHeart, label: t.nav.resources },
     { href: "/chat", icon: Bot, label: "أمان AI" },
-    { href: "/workshops", icon: CalendarDays, label: t.nav.workshops },
+    { href: "/messages", icon: Stethoscope, label: "مختصون" },
     { href: "/community", icon: Users, label: t.nav.community },
   ];
 

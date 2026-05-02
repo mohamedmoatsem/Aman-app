@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "wouter";
-import { Phone, BookHeart, CalendarDays, Users, ShieldCheck, HeartHandshake, Mail, Loader2, CheckCircle2, MessageCircleHeart, X, ArrowLeft } from "lucide-react";
+import { Phone, BookHeart, CalendarDays, Users, ShieldCheck, HeartHandshake, Mail, Loader2, CheckCircle2, MessageCircleHeart, X, ArrowLeft, Stethoscope } from "lucide-react";
 import MobileLayout from "@/components/layout/MobileLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -391,6 +391,26 @@ export default function Home() {
             <h3 className="font-bold text-lg mb-2 text-secondary">{t.home.tipTitle}</h3>
             <p className="text-foreground/80 leading-relaxed text-sm">{t.home.tipText}</p>
           </div>
+        </section>
+
+        {/* Doctors messaging CTA */}
+        <section>
+          <Link
+            href="/messages/professionals"
+            className="flex items-center gap-4 p-5 bg-gradient-to-l from-primary/5 to-emerald-50/60 border border-primary/15 rounded-3xl hover:shadow-md active:scale-[0.98] transition-all"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shrink-0 shadow-md">
+              <Stethoscope className="w-7 h-7 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">4 مختصين متاحون</span>
+              </div>
+              <h3 className="font-bold text-foreground text-base leading-tight">تحدّث مع مختص نفسي</h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">محادثة آمنة ومشفّرة — بهوية حقيقية أو مجهولة</p>
+            </div>
+            <ArrowLeft className="w-5 h-5 text-primary shrink-0" />
+          </Link>
         </section>
 
         {/* Presentation Links */}
