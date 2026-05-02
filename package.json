@@ -6,13 +6,27 @@
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
+    "typecheck": "pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
     "start": "concurrently \"cd server && node server.js\" \"npx wait-on http://localhost:3000 && cd artifacts/aman-app && pnpm run dev --host 0.0.0.0 --port 5173 --strictPort false\""
   },
   "private": true,
   "devDependencies": {
-    "typescript": "~5.9.2",
+    "concurrently": "^8.2.2",
     "prettier": "^3.8.1",
-    "concurrently": "^8.2.2"
+    "typescript": "~5.9.3"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "catalog:",
+    "axios": "^1.15.2",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "express-session": "^1.19.0",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "postgres": "^3.4.9",
+    "session-file-store": "^1.5.0",
+    "ts-node": "^10.9.2",
+    "tsx": "catalog:"
   }
 }

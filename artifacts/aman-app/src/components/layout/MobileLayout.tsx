@@ -15,10 +15,10 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
   return (
     <div
       dir={t.dir}
-      className="min-h-screen bg-muted/30 w-full flex justify-center selection:bg-primary/20"
+      className="min-h-screen bg-gradient-to-br from-sky-50/50 to-emerald-50/30 w-full flex justify-center selection:bg-primary/20"
       style={{ textAlign: t.dir === "rtl" ? "right" : "left" }}
     >
-      <div className="w-full max-w-[430px] min-h-screen bg-background shadow-2xl relative flex flex-col overflow-x-hidden font-sans">
+      <div className="w-full max-w-2xl min-h-screen bg-background shadow-2xl relative flex flex-col overflow-x-hidden font-sans">
         <main className="flex-1 overflow-y-auto pb-[80px]">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div

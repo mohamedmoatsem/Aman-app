@@ -1,31 +1,36 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { subscribersTable, insertSubscriberSchema } from "@workspace/db/schema";
-import { SubscribeBody } from "@workspace/api-zod";
+import { sql } from "drizzle-orm";
 
 const router: IRouter = Router();
 
-router.post("/subscribe", async (req, res) => {
-  try {
-    const parsed = SubscribeBody.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: "البريد الإلكتروني غير صحيح" });
-      return;
-    }
-    const validated = insertSubscriberSchema.parse(parsed.data);
-    const [created] = await db
-      .insert(subscribersTable)
-      .values(validated)
-      .onConflictDoNothing()
-      .returning();
+router.post("/", async (req, res) => {
+  const { email } = req.body as { email: string };
 
-    if (!created) {
-      res.status(409).json({ error: "هذا البريد الإلكتروني مشترك بالفعل" });
-      return;
+  if (!email || !email.includes("@")) {
+    return res.status(400).json({ error: "يرجى إدخال بريد إلكتروني صحيح" });
+  }
+
+  try {
+    const existing = await db.execute(sql`
+      SELECT id FROM subscriptions WHERE email = ${email} LIMIT 1
+    `);
+
+    if ((existing.rows ?? []).length > 0) {
+      return res.status(409).json({ error: "هذا البريد مسجل لدينا بالفعل" });
     }
-    res.status(201).json({ message: "تم الاشتراك بنجاح", email: created.email });
-  } catch (error) {
-    res.status(500).json({ error: "حدث خطأ، يرجى المحاولة مجدداً" });
+
+    const result = await db.execute(sql`
+      INSERT INTO subscriptions (email) VALUES (${email}) RETURNING *
+    `);
+
+    return res.status(201).json({
+      message: "تم الاشتراك بنجاح في قائمة أمان البريدية",
+      data: result.rows?.[0],
+    });
+  } catch (err: any) {
+    console.error("[subscribe] error:", err?.message);
+    return res.status(500).json({ error: "فشل في تسجيل الاشتراك، يرجى المحاولة لاحقاً" });
   }
 });
 

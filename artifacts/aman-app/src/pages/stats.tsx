@@ -93,7 +93,7 @@ function MiniChart({ data }: { data: { date: string; avgScore: number; entries: 
     </div>
   );
 
-  const max = 5;
+  const max = 100;
   const min = 0;
   const w = 280;
   const h = 96;
@@ -272,7 +272,11 @@ export default function Stats() {
               <MiniChart data={data.weeklyData} />
               {data.weeklyData.length > 0 && (
                 <div className="flex justify-between text-[10px] text-muted-foreground mt-2 px-1">
-                  <span>{data.weeklyData[data.weeklyData.length - 1]?.date?.slice(5)}</span>
+                  <span>{new Date(data.weeklyData[data.weeklyData.length - 1]?.date).toLocaleDateString('ar-EG', {day: 'numeric', month: 'short'})}</
+                  span>
+                  <span>{new Date(data.weeklyData[0]?.date).toLocaleDateString('ar-EG', {day: 'numeric', month: 'short'})}</
+                  span>
+                  
                   <span className="text-primary/60 font-medium">← اتجاه المزاج</span>
                   <span>{data.weeklyData[0]?.date?.slice(5)}</span>
                 </div>

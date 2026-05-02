@@ -1,141 +1,102 @@
-import { Router } from "express";
+import { Router, type IRouter } from "express";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const router = Router();
+const router: IRouter = Router();
 
-const SYSTEM_INSTRUCTION = `أنت "مساعد أمان" — رفيق دافئ بيتكلم بالسوداني الأصيل.
+const GEMINI_API_KEY = process.env.Gemini_API_KEY ?? process.env.GEMINI_API_KEY ?? "";
+const MODEL_NAME = "gemma-4-26b-a4b-it";
 
-اكتب ردك النهائي مباشرة، بلا مقدمات أو شرح أو تفكير داخلي.
+const SYSTEM_PROMPT = `أنت مساعد نفسي اسمه "أمان" - رفيق دافئ يتحدث باللهجة السودانية بشكل طبيعي.
 
-━━ شخصيتك ━━
-اللهجة السودانية الأصيلة الحارة:
-"والله شنو؟" / "ما عليك زود يا زول" / "أنا معاك بلا شروط" / "قولي شنو في بالك" / "الله يسهّل عليك"
-"تمام تمام" / "ياخ" / "سلامتك يا غالي" / "ربنا معاك" / "ما تخلّي الهمّ يكسرك"
-متعاطف وصبور، ما بحكم على أي حد مهما كان الموضوع.
-ردود قصيرة (2-3 جمل): ابدأ بالتعاطف ثم سؤال واحد بسيط.
+خصائصك الجوهرية:
+- تتحدث بالعربية السودانية الدارجة الدافئة والأصيلة
+- تستمع بعمق وتتعاطف بصدق قبل أن تقترح أي شيء
+- تستخدم تقنيات CBT و DBT بشكل خفي ومدروس دون أن تُسميها
+- تدعم المستخدم نفسياً في سياق الأزمات السودانية (الحرب، التهجير، الصدمة، الفقدان)
+- إذا ذكر المستخدم أفكاراً انتحارية أو إيذاء النفس، تُبدي تعاطفاً شديداً وتُحوّله بلطف لخط نجدة
 
-━━ تقنيات EMDR والصدمة ━━
-لو الشخص ذكر صدمة نفسية أو PTSD أو ذكريات مؤلمة أو كوابيس:
-علّمه "العناق الفراشة" (Butterfly Hug):
-"اعمل شباكك على صدرك، بالتبادل طق على كتفك اليمين واليسار بهدوء 10 مرات، وتنفس معاها."
-أو المكان الآمن: "تخيّل مكان بتحس فيه بأمان تام — شنو اللون والرائحة والصوت؟"
-أو التأريض: "سمّيلي 5 أشياء شايفها الحين، 4 قادر تلمسها، 3 سامعها."
+نماذج من أسلوبك:
+- "والله يا صاحبي، اللي بتحس بيه دا طبيعي جداً..."
+- "خبّرني أكثر، أنا سامعك كويس..."
+- "ياخي، دا تقيل شوية - كيف حالك النهارده بالضبط؟"
+- "أمان هنا معاك، ما تخاف"
 
-━━ قواعد صارمة ━━
-- لا تشخيصات طبية أبداً
-- لا قوائم ولا نقاط ولا شرح طويل
-- اكتب فقط الكلام المباشر للشخص
-- الخطر الحالي: وجّهه لـ 920033360 بهدوء ومحبة`;
+تقنيات EMDR للصدمة:
+- "فراشة هاق" (Butterfly Hug): "ضع يديك على كتفيك وافعل هكذا... زقزق باليمين ثم اليسار"
+- مكان الأمان: "تخيل مكان بتحس فيه بالراحة التامة... وصّفه لي"
+- تقنية 5-4-3-2-1: "سمّيلي 5 أشياء بتشوفها دلوقتي..."
 
-const genAI = new GoogleGenerativeAI(process.env.Gemini_API_KEY || "");
+ردودك قصيرة وصادقة (2-4 جمل عادةً)، تبتعد عن الكلام المكرر أو المتكلّف.`;
 
-function removeDuplicateSentences(text: string): string {
-  // Split by sentence-ending punctuation, deduplicate
-  const sentences = text.split(/(?<=[.؟!])\s*/u).filter(Boolean);
-  const seen = new Set<string>();
-  const unique: string[] = [];
-  for (const s of sentences) {
-    const key = s.trim();
-    if (key && !seen.has(key)) {
-      seen.add(key);
-      unique.push(s);
+// تنظيف رد النموذج: إزالة التفكير الداخلي والاحتفاظ بالرد الفعلي فقط
+function extractFinalReply(raw: string): string {
+  // إزالة أي كتلة <think>...</think> إن وجدت
+  const noThink = raw.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+
+  // قسّم على أسطر مزدوجة، خذ آخر فقرة غير فارغة
+  const paragraphs = noThink.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  if (!paragraphs.length) return noThink;
+
+  // إذا كانت آخر فقرة تبدأ بعلامات تعداد أو إنجليزية — خذ من قبلها
+  const last = paragraphs[paragraphs.length - 1];
+  const isBulletOrEnglish = /^[*\-•]|^[A-Za-z]/.test(last);
+
+  if (!isBulletOrEnglish) return last;
+
+  // ابحث عن آخر فقرة تحتوي على عربية
+  for (let i = paragraphs.length - 1; i >= 0; i--) {
+    if (/[\u0600-\u06FF]/.test(paragraphs[i]) && !/^[*\-•]/.test(paragraphs[i])) {
+      return paragraphs[i].replace(/^[""\s]+|[""\s]+$/g, "").trim();
     }
   }
-  return unique.join(" ").replace(/^["'"]+|["'"]+$/g, "").trim();
+
+  return noThink.replace(/^[""\s]+|[""\s]+$/g, "").trim();
 }
 
-function cleanReply(raw: string): string {
-  // Split into lines and remove any line that starts with English words
-  // (these are internal reasoning lines like "Final Polish:", "Option 1:", etc.)
-  const lines = raw.split("\n").filter((line) => {
-    const trimmed = line.trim();
-    if (!trimmed) return false;
-    // Drop lines starting with ASCII letters (English reasoning)
-    if (/^[A-Za-z*]/.test(trimmed)) return false;
-    // Drop lines that are mostly English
-    const arabicChars = (trimmed.match(/[\u0600-\u06FF]/g) || []).length;
-    const totalChars = trimmed.replace(/\s/g, "").length;
-    if (totalChars > 0 && arabicChars / totalChars < 0.3) return false;
-    return true;
-  });
-
-  let text = lines.join(" ").trim();
-
-  // Remove markdown formatting
-  text = text
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/^\s*[-•*]\s+/gm, "");
-
-  // Remove leading/trailing quotes
-  text = text.replace(/^["'"«\s]+|["'"»\s]+$/g, "").trim();
-
-  return removeDuplicateSentences(text);
-}
-
-router.post("/chat", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
-    const { message, history = [] } = req.body as {
+    const { message, history } = req.body as {
       message: string;
-      history: { role: "user" | "model"; parts: { text: string }[] }[];
+      history?: { role: "user" | "model"; parts: { text: string }[] }[];
     };
 
-    if (!message || typeof message !== "string" || message.trim().length === 0) {
-      return res.status(400).json({ error: "الرسالة مطلوبة" });
+    if (!message?.trim()) {
+      return res.status(400).json({ error: "الرسالة فارغة" });
     }
 
+    if (!GEMINI_API_KEY) {
+      return res.status(503).json({ error: "مفتاح الذكاء الاصطناعي غير مضبوط" });
+    }
+
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({
-      model: "gemma-4-26b-a4b-it",
-      systemInstruction: SYSTEM_INSTRUCTION,
+      model: MODEL_NAME,
+      systemInstruction: SYSTEM_PROMPT,
+    });
+
+    const chatSession = model.startChat({
+      history: (history ?? []).map((h) => ({
+        role: h.role,
+        parts: h.parts,
+      })),
       generationConfig: {
-        temperature: 0.75,
+        temperature: 0.85,
+        topK: 40,
         topP: 0.95,
-        topK: 64,
-        maxOutputTokens: 600,
+        maxOutputTokens: 512,
       },
     });
 
-    // Gemini requires history to start with 'user' and alternate user/model
-    // Remove any leading 'model' turns and ensure alternation
-    let cleanHistory = history.filter(
-      (h) => h.parts?.length > 0 && h.parts[0]?.text?.trim()
-    );
-    // Drop leading model messages
-    while (cleanHistory.length > 0 && cleanHistory[0].role === "model") {
-      cleanHistory = cleanHistory.slice(1);
-    }
-    // Ensure strict alternation (drop consecutive same-role entries)
-    const validHistory: typeof cleanHistory = [];
-    for (const turn of cleanHistory) {
-      const last = validHistory[validHistory.length - 1];
-      if (!last || last.role !== turn.role) {
-        validHistory.push(turn);
-      }
-    }
+    const result = await chatSession.sendMessage(message);
+    const rawReply = result.response.text();
 
-    const chat = model.startChat({ history: validHistory });
-    const result = await chat.sendMessage(message.trim());
-
-    // For thinking models (Gemma 4), extract only non-thought parts
-    let raw = "";
-    const candidate = result.response.candidates?.[0];
-    if (candidate?.content?.parts) {
-      const nonThoughtParts = candidate.content.parts.filter(
-        (p: any) => !p.thought && p.text
-      );
-      raw = nonThoughtParts.length > 0
-        ? nonThoughtParts.map((p: any) => p.text).join(" ")
-        : result.response.text();
-    } else {
-      raw = result.response.text();
-    }
-
-    const reply = cleanReply(raw);
+    // استخرج الرد الفعلي: آخر فقرة أو الجزء العربي الأخير
+    const reply = extractFinalReply(rawReply);
 
     return res.json({ reply });
   } catch (err: any) {
     console.error("[chat] error:", err?.message || err);
-    return res.status(500).json({ error: "حدث خطأ، حاول مرة ثانية" });
+    return res.status(500).json({ error: "المساعد غير متاح الآن، حاول مرة ثانية" });
   }
 });
 

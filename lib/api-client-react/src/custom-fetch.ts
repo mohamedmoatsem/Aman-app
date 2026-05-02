@@ -8,6 +8,8 @@ export type BodyType<T> = T;
 
 const NO_BODY_STATUS = new Set([204, 205, 304]);
 const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
+// السطر المضاف لربط السيرفر
+const BASE_URL = "https://5a3d682b-307d-49a3-9fed-8b83f1db8874-00-14zv8h0j6aqij.kirk.replit.dev";
 
 function isRequest(input: RequestInfo | URL): input is Request {
   return typeof Request !== "undefined" && input instanceof Request;
@@ -26,9 +28,10 @@ function isUrl(input: RequestInfo | URL): input is URL {
 }
 
 function resolveUrl(input: RequestInfo | URL): string {
-  if (typeof input === "string") return input;
-  if (isUrl(input)) return input.toString();
-  return input.url;
+  let url = typeof input === "string" ? input : isUrl(input) ? input.toString() : input.url;
+  // تعديل بسيط هنا لضمان توجيه الطلب للسيرفر الصحيح
+  if (url.startsWith("/api")) return `${BASE_URL}${url}`;
+  return url;
 }
 
 function mergeHeaders(...sources: Array<HeadersInit | undefined>): Headers {
@@ -298,8 +301,8 @@ export async function customFetch<T = unknown>(
   }
 
   const requestInfo = { method, url: resolveUrl(input) };
-
-  const response = await fetch(input, { ...init, method, headers });
+  // هنا يتم استخدام الـ URL الجديد الموجه للسيرفر
+  const response = await fetch(requestInfo.url, { ...init, method, headers });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

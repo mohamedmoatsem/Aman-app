@@ -2,20 +2,20 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-// import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal"; // نعلقها مؤقتاً
 
-const rawPort = process.env.PORT || "5173"; // نعطي قيمة افتراضية
+// إعدادات المنافذ والمسارات
+const rawPort = process.env.PORT || "5173";
 const port = Number(rawPort);
+const basePath = process.env.BASE_PATH || "/";
 
-const basePath = process.env.BASE_PATH || "/"; // قيمة افتراضية
+// نحدد بورت السيرفر (تأكد أنه يطابق البورت الذي يعمل عليه index.ts)
+const SERVER_PORT = "8080"; 
 
 export default defineConfig({
   base: basePath,
   plugins: [
     react(),
     tailwindcss(),
-    // runtimeErrorOverlay(), // نعلقها مؤقتاً
-    // تم تعطيل إضافات Replit الديناميكية لتجنب أخطاء التحميل
   ],
   resolve: {
     alias: {
@@ -38,6 +38,13 @@ export default defineConfig({
       deny: ["**/.*"],
     },
     proxy: {
+      // توجيه ذكي لجميع طلبات الـ API إلى السيرفر
+      "/api": {
+        target: `http://localhost:${SERVER_PORT}`,
+        changeOrigin: true,
+        secure: false,
+      },
+      // توجيه لوحة التحكم
       "/dashboard": {
         target: "http://localhost:5000",
         changeOrigin: true,

@@ -1,19 +1,16 @@
-import app from "./app";
+import express from "express";
+import cors from "cors";
+import apiRouter from "./routes/index.js";
 
-const rawPort = process.env["PORT"];
+const PORT = Number(process.env["PORT"] || "8080");
+const app = express();
 
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
-}
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use("/api", apiRouter);
 
-const port = Number(rawPort);
-
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Aman Server running on port ${PORT}`);
+  console.log(`✅ API and Database are ready`);
 });

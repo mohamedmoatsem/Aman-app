@@ -1,24 +1,24 @@
-import { Router, type IRouter } from "express";
-import healthRouter from "./health";
-import resourcesRouter from "./resources";
-import workshopsRouter from "./workshops";
-import communityRouter from "./community";
-import subscribeRouter from "./subscribe";
-import chatRouter from "./chat";
-import moodRouter from "./mood";
-import jitaiRouter from "./jitai";
-import statsRouter from "./stats";
+import { Router } from "express";
+import healthRouter from "./health.js";
+import moodRouter from "./mood.js";
+import jitaiRouter from "./jitai.js";
+import statsRouter from "./stats.js";
+import subscribeRouter from "./subscribe.js";
+import chatRouter from "./chat.js";
+import communityRouter from "./community.js";
+import workshopsRouter from "./workshops.js";
+import resourcesRouter from "./resources.js";
 
-const router: IRouter = Router();
+const router = Router();
 
 router.use(healthRouter);
-router.use(resourcesRouter);
-router.use(workshopsRouter);
-router.use(communityRouter);
-router.use(subscribeRouter);
-router.use(chatRouter);
 router.use(moodRouter);
 router.use(jitaiRouter);
 router.use(statsRouter);
+router.use(communityRouter);
+router.use(workshopsRouter);
+router.use(resourcesRouter);
+router.use("/subscribe", subscribeRouter);
+router.use("/chat", chatRouter);
 
 export default router;

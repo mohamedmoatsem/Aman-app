@@ -1,8 +1,50 @@
-# Workspace
+# أمان (Aman) — Mental Health Support App
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+Bilingual Arabic/English mobile-first safety support web app (React+Vite + Express + PostgreSQL) with AI mental health features. Built as a pnpm workspace monorepo.
+
+## Architecture
+
+- **Frontend**: `artifacts/aman-app` — React + Vite (port via `$PORT`), RTL Arabic/English, Tailwind CSS
+- **API Server**: `artifacts/api-server` — Express 5 on port 8080
+- **Dashboard**: `artifacts/aman-dashboard` — Streamlit on port 5000 at `/dashboard`
+- **AI**: Gemma 4 (`gemma-4-26b-a4b-it`) via `@google/generative-ai` — env var: `Gemini_API_KEY`
+
+## Key Routes
+
+### Frontend
+- `/` — Home (mood tracker, JITAI, subscribe)
+- `/chat` or `/assistant` — AI mental health assistant (Gemma 4)
+- `/resources` — Articles & mental health library
+- `/workshops` — Community workshops
+- `/community` — Community posts
+- `/depression` — Depression recovery (CBT/DBT techniques)
+- `/stats` — Live DB-driven statistics with animated counters
+- `/video` — 2-minute animated Arabic explainer
+
+### API (`/api/...`)
+- `POST /chat` — Gemma 4 AI chat (Sudanese dialect, PTSD/EMDR techniques)
+- `POST /mood` — Log mood; `GET /mood/history/:userId` — history
+- `GET /jitai/:userId` — Smart intervention check; `POST /jitai/accepted`
+- `GET /stats` — Live analytics (users, sessions, mood trends)
+- `POST /subscribe` — Email subscription (→ `subscriptions` table)
+- `GET /community`, `POST /community` — Community posts
+- `GET /workshops` — Workshops list
+- `GET /healthz` — Health check
+
+## Important Notes
+
+- DB table `subscriptions` (not `subscribers`) — use raw SQL for this
+- `community_posts` has `author_id` (int), not `authorName` (text) — use raw SQL
+- Drizzle schema may not match live DB exactly — prefer raw SQL for legacy tables
+- Gemma responds with chain-of-thought; `extractFinalReply()` in `chat.ts` cleans it up
+- `Gemini_API_KEY` env var (capital G)
+- JITAI triggers after 3 consecutive low-mood days (score ≤ 2)
+- Sudan time = UTC+3 (used in mood logs)
+- Device ID stored in `localStorage` as `aman_device_id`
+
+## Workspace
 
 ## Stack
 

@@ -1,6 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db } from "@workspace/db";
-import { moodLogsTable, motivationPatternsTable } from "@workspace/db/schema";
+import { db, moodLogsTable, motivationPatternsTable } from "@workspace/db";
 import { eq, desc, and } from "drizzle-orm";
 
 function getSudanDate(): string {
