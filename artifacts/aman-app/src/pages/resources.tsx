@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from "react";
 import MobileLayout from "@/components/layout/MobileLayout";
 import Header from "@/components/layout/Header";
 import { useResources } from "@/hooks/use-resources";
@@ -6,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { mentalHealthArticles } from "@/data/articles";
 import { useLocation } from "wouter";
+import { ArticleModal } from "@/components/ui/ArticleModal";
 
 declare global {
   interface Window {
@@ -30,6 +32,21 @@ export default function Resources() {
   const { t } = useLanguage();
   const r = t.resources;
   const [, navigate] = useLocation();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalBody, setModalBody] = useState("");
+
+  const openArticle = useCallback((title: string, body: string) => {
+    setModalTitle(title);
+    setModalBody(body);
+    setModalOpen(true);
+  }, []);
+
+  useEffect(() => {
+    window.openArticle = openArticle;
+    return () => { window.openArticle = () => {}; };
+  }, [openArticle]);
 
   return (
     <MobileLayout>
@@ -70,15 +87,15 @@ export default function Resources() {
           </div>
         </button>
 
-        {/* Featured article */}
+        {/* Featured article — نوبة الهلع */}
         <div className="bg-primary/5 border border-primary/20 rounded-3xl p-5 flex items-center justify-between gap-4">
           <div className="flex-1">
             <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">مقال مميز</span>
-            <h3 className="font-bold text-foreground mt-2 mb-1">كيف تتعامل مع نوبة الهلع؟</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">دليل عملي للتعامل مع نوبات القلق والهلع بثقة وهدوء</p>
+            <h3 className="font-bold text-foreground mt-2 mb-1">{mentalHealthArticles[0].title}</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">{mentalHealthArticles[0].summary}</p>
           </div>
           <button
-            onClick={() => window.openArticle('كيف تتعامل مع نوبة الهلع؟', 'هنا تضع نص المقال كاملاً...')}
+            onClick={() => openArticle(mentalHealthArticles[0].title, mentalHealthArticles[0].content)}
             className="shrink-0 bg-primary text-primary-foreground text-sm font-bold px-4 py-2 rounded-xl hover:opacity-90 active:scale-95 transition-all"
           >
             {r.readMore}
@@ -131,7 +148,7 @@ export default function Resources() {
                 <h3 className="font-bold text-lg text-foreground leading-tight">{resource.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">{resource.description}</p>
                 <button
-                  onClick={() => window.openArticle(resource.title, resource.description)}
+                  onClick={() => openArticle(resource.title, resource.description)}
                   className="mt-3 text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all w-fit"
                 >
                   {r.readMore}
@@ -148,7 +165,7 @@ export default function Resources() {
           )}
         </div>
 
-        {/* ===== 10 Mental Health Articles ===== */}
+        {/* ===== مقالات الصحة النفسية ===== */}
         <div>
           <div className="flex items-center gap-2 mb-4">
             <div className="h-px flex-1 bg-border" />
@@ -174,7 +191,7 @@ export default function Resources() {
                   </p>
                 </div>
                 <button
-                  onClick={() => window.openArticle(article.title, article.content)}
+                  onClick={() => openArticle(article.title, article.content)}
                   className="shrink-0 w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center active:scale-95 transition-transform"
                   aria-label="اقرأ المقال"
                 >
@@ -186,6 +203,13 @@ export default function Resources() {
         </div>
 
       </div>
+
+      <ArticleModal
+        open={modalOpen}
+        title={modalTitle}
+        body={modalBody}
+        onClose={() => setModalOpen(false)}
+      />
     </MobileLayout>
   );
 }
