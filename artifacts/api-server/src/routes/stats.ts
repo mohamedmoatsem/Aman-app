@@ -5,8 +5,6 @@ import { sql } from "drizzle-orm";
 const router: IRouter = Router();
 
 // ─── Demo baseline data (realistic for Sudan war context) ─────────────────────
-// These represent realistic projections for the app's target population.
-// Real DB data is layered on top of these baselines.
 const DEMO = {
   baseChatSessions:         8_340,
   baseCrisisInterventions:    342,
@@ -15,51 +13,93 @@ const DEMO = {
   baseTodayActive:               87,
   baseWeeklyNew:                214,
 
-  topTopics: [
-    { topic: "صدمة الحرب والنزوح",    emoji: "⚔️", count: 2_840, color: "#ef4444" },
-    { topic: "القلق والتوتر",           emoji: "😰", count: 2_190, color: "#f59e0b" },
-    { topic: "الاكتئاب والحزن",         emoji: "💙", count: 1_760, color: "#8b5cf6" },
-    { topic: "فقدان الأهل والذكريات",   emoji: "🕊️", count: 1_340, color: "#6366f1" },
-    { topic: "اضطراب النوم والكوابيس",  emoji: "🌙", count: 1_050, color: "#0ea5e9" },
-    { topic: "الغربة واللجوء",          emoji: "🌍", count:   890, color: "#10b981" },
-    { topic: "ذنب الناجي",              emoji: "💭", count:   620, color: "#ec4899" },
-    { topic: "الجوع والحرمان",          emoji: "🍞", count:   490, color: "#f97316" },
-  ],
+  topTopics: {
+    ar: [
+      { topic: "صدمة الحرب والنزوح",    emoji: "⚔️", count: 2_840, color: "#ef4444" },
+      { topic: "القلق والتوتر",           emoji: "😰", count: 2_190, color: "#f59e0b" },
+      { topic: "الاكتئاب والحزن",         emoji: "💙", count: 1_760, color: "#8b5cf6" },
+      { topic: "فقدان الأهل والذكريات",   emoji: "🕊️", count: 1_340, color: "#6366f1" },
+      { topic: "اضطراب النوم والكوابيس",  emoji: "🌙", count: 1_050, color: "#0ea5e9" },
+      { topic: "الغربة واللجوء",          emoji: "🌍", count:   890, color: "#10b981" },
+      { topic: "ذنب الناجي",              emoji: "💭", count:   620, color: "#ec4899" },
+      { topic: "الجوع والحرمان",          emoji: "🍞", count:   490, color: "#f97316" },
+    ],
+    en: [
+      { topic: "War & Displacement Trauma", emoji: "⚔️", count: 2_840, color: "#ef4444" },
+      { topic: "Anxiety & Stress",           emoji: "😰", count: 2_190, color: "#f59e0b" },
+      { topic: "Depression & Grief",         emoji: "💙", count: 1_760, color: "#8b5cf6" },
+      { topic: "Loss of Family & Memories",  emoji: "🕊️", count: 1_340, color: "#6366f1" },
+      { topic: "Sleep Disorders & Nightmares", emoji: "🌙", count: 1_050, color: "#0ea5e9" },
+      { topic: "Exile & Displacement",       emoji: "🌍", count:   890, color: "#10b981" },
+      { topic: "Survivor's Guilt",           emoji: "💭", count:   620, color: "#ec4899" },
+      { topic: "Hunger & Deprivation",       emoji: "🍞", count:   490, color: "#f97316" },
+    ],
+  },
 
-  geographic: [
-    { region: "بورتسودان والشرق",  users: 780, flag: "🏙️", pct: 31 },
-    { region: "مصر (ديaspora)",    users: 620, flag: "🇪🇬", pct: 25 },
-    { region: "دارفور",            users: 380, flag: "🌅", pct: 15 },
-    { region: "تشاد (لاجئون)",    users: 290, flag: "🏕️", pct: 12 },
-    { region: "كردفان والجزيرة",   users: 210, flag: "🌾", pct:  8 },
-    { region: "دول أخرى",         users: 220, flag: "✈️", pct:  9 },
-  ],
+  geographic: {
+    ar: [
+      { region: "بورتسودان والشرق",  users: 780, flag: "🏙️", pct: 31 },
+      { region: "مصر (ديaspora)",    users: 620, flag: "🇪🇬", pct: 25 },
+      { region: "دارفور",            users: 380, flag: "🌅", pct: 15 },
+      { region: "تشاد (لاجئون)",    users: 290, flag: "🏕️", pct: 12 },
+      { region: "كردفان والجزيرة",   users: 210, flag: "🌾", pct:  8 },
+      { region: "دول أخرى",         users: 220, flag: "✈️", pct:  9 },
+    ],
+    en: [
+      { region: "Port Sudan & East",   users: 780, flag: "🏙️", pct: 31 },
+      { region: "Egypt (Diaspora)",    users: 620, flag: "🇪🇬", pct: 25 },
+      { region: "Darfur",              users: 380, flag: "🌅", pct: 15 },
+      { region: "Chad (Refugees)",     users: 290, flag: "🏕️", pct: 12 },
+      { region: "Kordofan & Jazeera", users: 210, flag: "🌾", pct:  8 },
+      { region: "Other Countries",     users: 220, flag: "✈️", pct:  9 },
+    ],
+  },
 
   hourlyActivity: [
     6, 8, 12, 18, 22, 25, 20, 18, 22, 28, 35, 42,
     38, 30, 28, 32, 40, 52, 65, 72, 68, 55, 40, 22,
   ],
 
-  testimonials: [
-    {
-      text: "أمان كان معاي لمّا ما لقيت أي زول يسمعني في المخيم. خلّاني أتنفس تاني.",
-      location: "مخيم أدري — تشاد",
-      emoji: "🕊️",
-    },
-    {
-      text: "كنت خايف أتكلم مع أي حد عن اللي شفته. المساعد ما حكم عليّ وساعدني أفهم إن ردة فعلي طبيعية.",
-      location: "القاهرة — مصر",
-      emoji: "💚",
-    },
-    {
-      text: "بكيت لأول مرة من زمان بعد ما كتبت لأمان. كان الدم دا محتاجه.",
-      location: "بورتسودان",
-      emoji: "🌱",
-    },
-  ],
+  testimonials: {
+    ar: [
+      {
+        text: "أمان كان معاي لمّا ما لقيت أي زول يسمعني في المخيم. خلّاني أتنفس تاني.",
+        location: "مخيم أدري — تشاد",
+        emoji: "🕊️",
+      },
+      {
+        text: "كنت خايف أتكلم مع أي حد عن اللي شفته. المساعد ما حكم عليّ وساعدني أفهم إن ردة فعلي طبيعية.",
+        location: "القاهرة — مصر",
+        emoji: "💚",
+      },
+      {
+        text: "بكيت لأول مرة من زمان بعد ما كتبت لأمان. كان الدم دا محتاجه.",
+        location: "بورتسودان",
+        emoji: "🌱",
+      },
+    ],
+    en: [
+      {
+        text: "Amān was with me when I couldn't find anyone to listen in the camp. It let me breathe again.",
+        location: "Adre Camp — Chad",
+        emoji: "🕊️",
+      },
+      {
+        text: "I was afraid to talk to anyone about what I'd seen. The assistant didn't judge me — it helped me understand my reaction was normal.",
+        location: "Cairo — Egypt",
+        emoji: "💚",
+      },
+      {
+        text: "I cried for the first time in years after writing to Amān. That release was something I needed.",
+        location: "Port Sudan",
+        emoji: "🌱",
+      },
+    ],
+  },
 };
 
-router.get("/stats", async (_req, res) => {
+router.get("/stats", async (req, res) => {
+  const lang = (req.query.lang as string) === "en" ? "en" : "ar";
   try {
     const [
       usersResult,
@@ -193,11 +233,11 @@ router.get("/stats", async (_req, res) => {
       },
       weeklyData: mergedWeekly,
 
-      // Rich demo data
-      topTopics:    DEMO.topTopics,
-      geographic:   DEMO.geographic,
+      // Rich demo data (localized)
+      topTopics:    DEMO.topTopics[lang],
+      geographic:   DEMO.geographic[lang],
       hourlyActivity: DEMO.hourlyActivity,
-      testimonials: DEMO.testimonials,
+      testimonials: DEMO.testimonials[lang],
 
       // Impact projection (Year 1 goals)
       impact: {

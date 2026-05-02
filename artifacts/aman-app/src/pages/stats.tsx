@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import {
   ArrowRight, ArrowLeft, TrendingUp, TrendingDown, Minus,
   Users, Heart, MessageCircle, ShieldAlert, Globe,
-  RefreshCw, Stethoscope, BookOpen, Clock, Star, BarChart3,
+  RefreshCw, Stethoscope, BookOpen, Clock, Star,
 } from "lucide-react";
 import MobileLayout from "@/components/layout/MobileLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -50,15 +50,9 @@ function useCountUp(target: number, duration = 1400, start = false) {
   return count;
 }
 
-// ── Component: animated number (safe hook usage) ──────────────────────────────
-function AnimatedNumber({ value, animate }: { value: number; animate: boolean }) {
-  const displayed = useCountUp(value, 1300, animate);
-  return <>{displayed.toLocaleString()}</>;
-}
-
 // ── Component: KPI card ───────────────────────────────────────────────────────
-function KpiCard({ icon, label, value, suffix = "", sub, color, textColor, animate }: {
-  icon: React.ReactNode; label: string; value: number; suffix?: string;
+function KpiCard({ icon, label, value, sub, color, textColor, animate }: {
+  icon: React.ReactNode; label: string; value: number;
   sub?: React.ReactNode; color: string; textColor: string; animate: boolean;
 }) {
   const displayed = useCountUp(value, 1300, animate);
@@ -67,11 +61,42 @@ function KpiCard({ icon, label, value, suffix = "", sub, color, textColor, anima
       <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${color}`}>{icon}</div>
       <div>
         <p className="text-2xl font-extrabold tabular-nums text-foreground">
-          {displayed.toLocaleString()}{suffix}
+          {displayed.toLocaleString()}
         </p>
         <p className="text-xs font-medium text-muted-foreground mt-0.5 leading-tight">{label}</p>
       </div>
       {sub && <div className={`text-[11px] font-semibold ${textColor}`}>{sub}</div>}
+    </div>
+  );
+}
+
+// ── Component: crisis banner (own component so hook is always called) ─────────
+function CrisisBanner({
+  value, prevented, crisisTitle, crisisNote, crisisPreventedLabel, animate,
+}: {
+  value: number; prevented: number; crisisTitle: string;
+  crisisNote: string; crisisPreventedLabel: string; animate: boolean;
+}) {
+  const displayed = useCountUp(value, 1300, animate);
+  return (
+    <div className="bg-gradient-to-l from-red-500/10 to-orange-500/10 border border-red-200/60 rounded-3xl p-5">
+      <div className="flex items-center gap-4 mb-3">
+        <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center shrink-0">
+          <ShieldAlert className="w-7 h-7 text-red-500" />
+        </div>
+        <div>
+          <p className="text-4xl font-extrabold text-foreground tabular-nums">
+            {displayed.toLocaleString()}
+          </p>
+          <p className="text-xs text-muted-foreground font-medium mt-0.5">{crisisTitle}</p>
+        </div>
+      </div>
+      <div className="bg-white/70 rounded-2xl p-3">
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          📌 {crisisNote}{" "}
+          <strong className="text-foreground">{prevented.toLocaleString()} {crisisPreventedLabel}.</strong>
+        </p>
+      </div>
     </div>
   );
 }
@@ -105,9 +130,8 @@ function SparkLine({ data }: { data: { date: string; avgScore: number }[] }) {
 }
 
 // ── Component: hourly heatmap ─────────────────────────────────────────────────
-function HourlyHeatmap({ data }: { data: number[] }) {
+function HourlyHeatmap({ data, labels }: { data: number[]; labels: string[] }) {
   const max = Math.max(...data, 1);
-  const labels = ["12ص", "3ص", "6ص", "9ص", "12ظ", "3م", "6م", "9م"];
   return (
     <div>
       <div className="flex gap-0.5">
@@ -118,7 +142,6 @@ function HourlyHeatmap({ data }: { data: number[] }) {
               key={i}
               className="flex-1 rounded-sm"
               style={{ height: 28, backgroundColor: `rgba(14,165,233,${opacity})` }}
-              title={`${i}:00 — ${v} مستخدم`}
             />
           );
         })}
@@ -132,7 +155,7 @@ function HourlyHeatmap({ data }: { data: number[] }) {
   );
 }
 
-// ── Component: mood distribution bar ─────────────────────────────────────────
+// ── Component: mood bar ───────────────────────────────────────────────────────
 function MoodBar({ emoji, label, value, total, color }: {
   emoji: string; label: string; value: number; total: number; color: string;
 }) {
@@ -140,7 +163,7 @@ function MoodBar({ emoji, label, value, total, color }: {
   return (
     <div className="flex items-center gap-2.5">
       <span className="text-base w-6 shrink-0">{emoji}</span>
-      <span className="text-xs text-muted-foreground w-16 shrink-0">{label}</span>
+      <span className="text-xs text-muted-foreground w-20 shrink-0">{label}</span>
       <div className="flex-1 bg-muted rounded-full h-2.5 overflow-hidden">
         <div className={`h-full rounded-full transition-all duration-1000 ${color}`} style={{ width: `${pct}%` }} />
       </div>
@@ -150,9 +173,15 @@ function MoodBar({ emoji, label, value, total, color }: {
 }
 
 // ── Component: testimonial carousel ──────────────────────────────────────────
-function TestimonialCarousel({ items }: { items: { text: string; location: string; emoji: string }[] }) {
+function TestimonialCarousel({
+  items, label,
+}: {
+  items: { text: string; location: string; emoji: string }[];
+  label: string;
+}) {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
+    if (!items.length) return;
     const t = setInterval(() => setIdx((i) => (i + 1) % items.length), 5000);
     return () => clearInterval(t);
   }, [items.length]);
@@ -162,7 +191,7 @@ function TestimonialCarousel({ items }: { items: { text: string; location: strin
     <div className="bg-gradient-to-br from-primary/8 via-emerald-500/5 to-transparent border border-primary/15 rounded-3xl p-5">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xl">{cur.emoji}</span>
-        <p className="text-[11px] font-bold text-primary uppercase tracking-wide">شهادة حية</p>
+        <p className="text-[11px] font-bold text-primary uppercase tracking-wide">{label}</p>
       </div>
       <p className="text-sm text-foreground leading-relaxed italic mb-3">"{cur.text}"</p>
       <p className="text-[11px] text-muted-foreground flex items-center gap-1">
@@ -181,36 +210,12 @@ function TestimonialCarousel({ items }: { items: { text: string; location: strin
   );
 }
 
-// ── Crisis Banner (standalone component so hooks are top-level) ───────────────
-function CrisisBanner({ value, prevented, animate }: { value: number; prevented: number; animate: boolean }) {
-  const displayed = useCountUp(value, 1300, animate);
-  return (
-    <div className="bg-gradient-to-l from-red-500/10 to-orange-500/10 border border-red-200/60 rounded-3xl p-5">
-      <div className="flex items-center gap-4 mb-3">
-        <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center shrink-0">
-          <ShieldAlert className="w-7 h-7 text-red-500" />
-        </div>
-        <div>
-          <p className="text-4xl font-extrabold text-foreground tabular-nums">
-            {displayed.toLocaleString()}
-          </p>
-          <p className="text-xs text-muted-foreground font-medium mt-0.5">تدخّل في أزمة نفسية حادة</p>
-        </div>
-      </div>
-      <div className="bg-white/70 rounded-2xl p-3">
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
-          📌 كل رقم هنا إنسان مرّ بلحظة حرجة ووجد أمان بجانبه.
-          {" "}<strong className="text-foreground">{prevented.toLocaleString()} حالة</strong> جرى فيها تحويل المستخدم لخطوط دعم متخصصة.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 // ── Main stats page ───────────────────────────────────────────────────────────
 export default function Stats() {
-  const { t } = useLanguage();
-  const BackArrow = t.dir === "rtl" ? ArrowRight : ArrowLeft;
+  const { t, lang } = useLanguage();
+  const s = t.stats;
+  const isRtl = t.dir === "rtl";
+  const BackArrow = isRtl ? ArrowRight : ArrowLeft;
 
   const [data, setData] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -224,7 +229,7 @@ export default function Stats() {
     if (!silent) setLoading(true);
     setError(false);
     try {
-      const res = await fetch(`${BASE_URL}/api/stats`);
+      const res = await fetch(`${BASE_URL}/api/stats?lang=${lang}`);
       if (!res.ok) throw new Error();
       setData(await res.json());
       setLastUpdated(new Date());
@@ -239,26 +244,39 @@ export default function Stats() {
     }
   };
 
+  // Reload when language changes so localized demo data refreshes
   useEffect(() => {
+    hasLoaded.current = false;
+    setAnimated(false);
     load();
+  }, [lang]);
+
+  useEffect(() => {
     intervalRef.current = setInterval(() => load(true), 60_000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, []);
+  }, [lang]);
 
   const dist = data?.moodDistribution;
   const distTotal = dist ? dist.veryLow + dist.low + dist.mid + dist.high : 0;
-  const maxTopic = Math.max(...(data?.topTopics.map((t) => t.count) ?? [1]));
+  const maxTopic = Math.max(...(data?.topTopics.map((top) => top.count) ?? [1]));
   const weeklyMin = data?.weeklyData.length ? Math.min(...data.weeklyData.map((d) => d.avgScore)) : 0;
   const weeklyMax = data?.weeklyData.length ? Math.max(...data.weeklyData.map((d) => d.avgScore)) : 0;
   const weeklyAvg = data?.weeklyData.length
-    ? data.weeklyData.reduce((s, d) => s + d.avgScore, 0) / data.weeklyData.length
+    ? data.weeklyData.reduce((sum, d) => sum + d.avgScore, 0) / data.weeklyData.length
     : 0;
 
-  const trendIcon = (data?.moodImprovement ?? 0) > 0
-    ? <span className="flex items-center gap-1 text-emerald-600 text-xs font-semibold"><TrendingUp className="w-3 h-3" /> تحسّن {data?.moodImprovement}%</span>
-    : (data?.moodImprovement ?? 0) < 0
-    ? <span className="flex items-center gap-1 text-red-500 text-xs font-semibold"><TrendingDown className="w-3 h-3" /> انخفض {Math.abs(data?.moodImprovement ?? 0)}%</span>
-    : <span className="flex items-center gap-1 text-muted-foreground text-xs"><Minus className="w-3 h-3" /> مستقر</span>;
+  const improvement = data?.moodImprovement ?? 0;
+  const trendIcon = improvement > 0
+    ? <span className="flex items-center gap-1 text-emerald-600 text-xs font-semibold"><TrendingUp className="w-3 h-3" /> {s.trendUp} {improvement}%</span>
+    : improvement < 0
+    ? <span className="flex items-center gap-1 text-red-500 text-xs font-semibold"><TrendingDown className="w-3 h-3" /> {s.trendDown} {Math.abs(improvement)}%</span>
+    : <span className="flex items-center gap-1 text-muted-foreground text-xs"><Minus className="w-3 h-3" /> {s.trendStable}</span>;
+
+  const hourlyLabels = isRtl
+    ? ["12ص", "3ص", "6ص", "9ص", "12ظ", "3م", "6م", "9م"]
+    : ["12a", "3a", "6a", "9a", "12p", "3p", "6p", "9p"];
+
+  const localeCode = isRtl ? "ar-EG" : "en-US";
 
   return (
     <MobileLayout>
@@ -274,9 +292,9 @@ export default function Stats() {
               <BackArrow className="w-5 h-5 text-white" />
             </button>
           </Link>
-          <div className="flex-1">
-            <h1 className="text-2xl font-extrabold text-white leading-tight">الإحصاءات الحية</h1>
-            <p className="text-white/70 text-xs mt-0.5">أثر أمان في الوقت الفعلي — السودان والشتات</p>
+          <div className="flex-1" dir={t.dir}>
+            <h1 className="text-2xl font-extrabold text-white leading-tight">{s.pageTitle}</h1>
+            <p className="text-white/70 text-xs mt-0.5">{s.pageSubtitle}</p>
           </div>
           <button
             onClick={() => load()}
@@ -287,40 +305,44 @@ export default function Stats() {
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-2 relative">
+        <div className="flex flex-wrap gap-2 relative" dir={t.dir}>
           <div className="flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
-            <span className="text-white text-xs font-semibold">مباشر الآن</span>
+            <span className="text-white text-xs font-semibold">{s.liveNow}</span>
           </div>
           {data && (
             <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1.5">
               <Users className="w-3 h-3 text-white/80" />
-              <span className="text-white text-xs font-semibold">{data.todayActive} نشط اليوم</span>
+              <span className="text-white text-xs font-semibold">
+                {data.todayActive} {s.activeToday}
+              </span>
             </div>
           )}
           {data && (
             <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1.5">
               <Star className="w-3 h-3 text-amber-300" />
-              <span className="text-white text-xs font-semibold">{data.weeklyNew}+ هذا الأسبوع</span>
+              <span className="text-white text-xs font-semibold">
+                {data.weeklyNew}+ {s.thisWeekBadge}
+              </span>
             </div>
           )}
         </div>
       </div>
 
       {/* ── Content ──────────────────────────────────────────────────────── */}
-      <div className="px-4 py-5 -mt-3 rounded-t-[28px] bg-background relative z-10 flex flex-col gap-5">
+      <div className="px-4 py-5 -mt-3 rounded-t-[28px] bg-background relative z-10 flex flex-col gap-5" dir={t.dir}>
 
         {loading && !data && (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
             <div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-            <p className="text-sm text-muted-foreground">جارٍ تحميل البيانات...</p>
+            <p className="text-sm text-muted-foreground">{s.loading}</p>
           </div>
         )}
 
         {error && (
           <div className="bg-destructive/10 border border-destructive/20 rounded-2xl px-4 py-4 text-center">
-            <p className="text-sm text-destructive font-medium mb-2">تعذّر تحميل الإحصائيات</p>
-            <button onClick={() => load()} className="text-xs underline text-destructive">حاول مجدداً</button>
+            <p className="text-sm text-destructive font-medium mb-2">{s.errorTitle}</p>
+            <button onClick={() => load()} className="text-xs underline text-destructive">{s.retry}</button>
           </div>
         )}
 
@@ -330,6 +352,9 @@ export default function Stats() {
             <CrisisBanner
               value={data.crisisInterventions}
               prevented={data.impact.crisisPrevented}
+              crisisTitle={s.crisisTitle}
+              crisisNote={s.crisisNote}
+              crisisPreventedLabel={s.crisisPrevented}
               animate={animated}
             />
 
@@ -337,71 +362,71 @@ export default function Stats() {
             <div className="grid grid-cols-2 gap-3">
               <KpiCard
                 icon={<Users className="w-5 h-5 text-sky-600" />}
-                label="مستخدم نشط"
+                label={s.kpiUsers}
                 value={data.totalUsers}
                 color="bg-sky-100" textColor="text-sky-600"
                 animate={animated}
-                sub={<span>📈 +{data.weeklyNew} هذا الأسبوع</span>}
+                sub={<span>📈 +{data.weeklyNew} {s.kpiUsersWeek}</span>}
               />
               <KpiCard
                 icon={<MessageCircle className="w-5 h-5 text-violet-600" />}
-                label="محادثة مع المساعد AI"
+                label={s.kpiSessions}
                 value={data.totalSessions}
                 color="bg-violet-100" textColor="text-violet-600"
                 animate={animated}
-                sub={<span>⌀ {data.avgScore.toFixed(1)}/5 مزاج</span>}
+                sub={<span>⌀ {data.avgScore.toFixed(1)}/5 {s.kpiSessionsMood}</span>}
               />
               <KpiCard
                 icon={<Stethoscope className="w-5 h-5 text-emerald-600" />}
-                label="استشارة مع مختص"
+                label={s.kpiProfConsults}
                 value={data.profConsults}
                 color="bg-emerald-100" textColor="text-emerald-600"
                 animate={animated}
-                sub={<span>🔒 100% سرية</span>}
+                sub={<span>{s.kpiProfConfidential}</span>}
               />
               <KpiCard
                 icon={<BookOpen className="w-5 h-5 text-amber-600" />}
-                label="مشاركة في المجتمع"
+                label={s.kpiCommunity}
                 value={data.communityPosts}
                 color="bg-amber-100" textColor="text-amber-600"
                 animate={animated}
-                sub={<span>💚 قصص حقيقية</span>}
+                sub={<span>{s.kpiCommunityStories}</span>}
               />
             </div>
 
             {/* 3 ── Mood trend */}
             <section className="bg-card border border-border/60 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-1">
-                <h2 className="font-bold text-foreground text-sm">مسار المزاج — آخر 14 يوم</h2>
+                <h2 className="font-bold text-foreground text-sm">{s.moodChartTitle}</h2>
                 {trendIcon}
               </div>
               <div className="flex gap-4 mb-3 text-[11px] text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-sky-400 inline-block" />
-                  هذا الأسبوع: <strong className="text-foreground mr-0.5">{data.thisWeekAvg.toFixed(1)}</strong>
+                  {s.thisWeekLabel} <strong className="text-foreground mx-0.5">{data.thisWeekAvg.toFixed(1)}</strong>
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-muted-foreground/30 inline-block" />
-                  السابق: {data.lastWeekAvg.toFixed(1)}
+                  {s.lastWeekLabel} {data.lastWeekAvg.toFixed(1)}
                 </span>
               </div>
               <SparkLine data={data.weeklyData} />
               {data.weeklyData.length > 1 && (
                 <div className="flex justify-between text-[10px] text-muted-foreground mt-2 px-1">
                   <span>{data.weeklyData[0]?.date?.slice(5).replace("-", "/")}</span>
-                  <span className="text-primary/70 font-medium">↑ اتجاه تصاعدي</span>
+                  <span className="text-primary/70 font-medium">{s.trendArrow}</span>
                   <span>{data.weeklyData[data.weeklyData.length - 1]?.date?.slice(5).replace("-", "/")}</span>
                 </div>
               )}
               <div className="mt-3 pt-3 border-t border-border/40 grid grid-cols-3 gap-2 text-center">
                 {[
-                  { label: "أدنى", val: weeklyMin.toFixed(1), cls: "text-red-500" },
-                  { label: "المتوسط", val: weeklyAvg.toFixed(1), cls: "text-primary" },
-                  { label: "أعلى", val: weeklyMax.toFixed(1), cls: "text-emerald-600" },
-                ].map((s) => (
-                  <div key={s.label}>
-                    <p className={`text-lg font-extrabold ${s.cls}`}>{s.val}</p>
-                    <p className="text-[10px] text-muted-foreground">{s.label}</p>
+                  { label: s.weeklyMin, val: weeklyMin.toFixed(1), cls: "text-red-500" },
+                  { label: s.weeklyAvg, val: weeklyAvg.toFixed(1), cls: "text-primary" },
+                  { label: s.weeklyMax, val: weeklyMax.toFixed(1), cls: "text-emerald-600" },
+                ].map((stat) => (
+                  <div key={stat.label}>
+                    <p className={`text-lg font-extrabold ${stat.cls}`}>{stat.val}</p>
+                    <p className="text-[10px] text-muted-foreground">{stat.label}</p>
                   </div>
                 ))}
               </div>
@@ -409,22 +434,22 @@ export default function Stats() {
 
             {/* 4 ── Mood distribution */}
             <section className="bg-card border border-border/60 rounded-3xl p-5 shadow-sm">
-              <h2 className="font-bold text-foreground text-sm mb-4">توزيع المزاج الكلي</h2>
+              <h2 className="font-bold text-foreground text-sm mb-4">{s.moodDistTitle}</h2>
               <div className="flex flex-col gap-3">
-                <MoodBar emoji="😟" label="قلق شديد" value={dist?.veryLow ?? 0} total={distTotal} color="bg-orange-400" />
-                <MoodBar emoji="😔" label="حزين"      value={dist?.low    ?? 0} total={distTotal} color="bg-blue-400" />
-                <MoodBar emoji="🌿" label="عادي"      value={dist?.mid    ?? 0} total={distTotal} color="bg-sky-400" />
-                <MoodBar emoji="✨" label="بخير"      value={dist?.high   ?? 0} total={distTotal} color="bg-emerald-400" />
+                <MoodBar emoji="😟" label={s.moodVeryLow} value={dist?.veryLow ?? 0} total={distTotal} color="bg-orange-400" />
+                <MoodBar emoji="😔" label={s.moodLow}     value={dist?.low    ?? 0} total={distTotal} color="bg-blue-400" />
+                <MoodBar emoji="🌿" label={s.moodMid}     value={dist?.mid    ?? 0} total={distTotal} color="bg-sky-400" />
+                <MoodBar emoji="✨" label={s.moodHigh}    value={dist?.high   ?? 0} total={distTotal} color="bg-emerald-400" />
               </div>
               <p className="text-[11px] text-muted-foreground mt-3 text-center">
-                إجمالي التقييمات: <strong className="text-foreground">{distTotal.toLocaleString()}</strong> تسجيل
+                {s.moodDistTotal} <strong className="text-foreground">{distTotal.toLocaleString(localeCode)}</strong> {s.moodDistUnit}
               </p>
             </section>
 
             {/* 5 ── Top topics */}
             <section className="bg-card border border-border/60 rounded-3xl p-5 shadow-sm">
-              <h2 className="font-bold text-foreground text-sm mb-1">أكثر المواضيع تداولاً</h2>
-              <p className="text-[11px] text-muted-foreground mb-4">ما يتحدث عنه مستخدمو أمان مع المساعد AI</p>
+              <h2 className="font-bold text-foreground text-sm mb-1">{s.topicsTitle}</h2>
+              <p className="text-[11px] text-muted-foreground mb-4">{s.topicsSubtitle}</p>
               <div className="flex flex-col gap-3">
                 {data.topTopics.map((topic, i) => {
                   const pct = Math.round((topic.count / maxTopic) * 100);
@@ -435,7 +460,7 @@ export default function Stats() {
                         <div className="flex justify-between items-center mb-1">
                           <p className="text-xs font-medium text-foreground truncate">{topic.topic}</p>
                           <p className="text-[11px] text-muted-foreground tabular-nums shrink-0 ml-2">
-                            {topic.count.toLocaleString()}
+                            {topic.count.toLocaleString(localeCode)}
                           </p>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -453,8 +478,10 @@ export default function Stats() {
 
             {/* 6 ── Geographic */}
             <section className="bg-card border border-border/60 rounded-3xl p-5 shadow-sm">
-              <h2 className="font-bold text-foreground text-sm mb-1">التوزيع الجغرافي</h2>
-              <p className="text-[11px] text-muted-foreground mb-4">السودان والشتات — {data.impact.countriesServed}+ دولة</p>
+              <h2 className="font-bold text-foreground text-sm mb-1">{s.geoTitle}</h2>
+              <p className="text-[11px] text-muted-foreground mb-4">
+                {s.geoSubtitle} — {data.impact.countriesServed}+ {s.geoCountries}
+              </p>
               <div className="flex flex-col gap-2.5">
                 {data.geographic.map((g, i) => (
                   <div key={i} className="flex items-center gap-3">
@@ -462,7 +489,7 @@ export default function Stats() {
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-0.5">
                         <p className="text-xs font-medium text-foreground">{g.region}</p>
-                        <p className="text-[11px] text-muted-foreground tabular-nums">{g.users.toLocaleString()}</p>
+                        <p className="text-[11px] text-muted-foreground tabular-nums">{g.users.toLocaleString(localeCode)}</p>
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div
@@ -477,51 +504,49 @@ export default function Stats() {
               </div>
             </section>
 
-            {/* 7 ── Hourly activity heatmap */}
+            {/* 7 ── Hourly heatmap */}
             <section className="bg-card border border-border/60 rounded-3xl p-5 shadow-sm">
-              <h2 className="font-bold text-foreground text-sm mb-1">نشاط التطبيق خلال اليوم</h2>
-              <p className="text-[11px] text-muted-foreground mb-4">متى يحتاج الناس المساندة أكثر؟</p>
-              <HourlyHeatmap data={data.hourlyActivity} />
-              <p className="text-[10px] text-muted-foreground mt-3 text-center">
-                🌙 ذروة الليل <strong className="text-foreground">9م–11م</strong> — الأوقات الأكثر حساسيةً نفسياً
-              </p>
+              <h2 className="font-bold text-foreground text-sm mb-1">{s.hourlyTitle}</h2>
+              <p className="text-[11px] text-muted-foreground mb-4">{s.hourlySubtitle}</p>
+              <HourlyHeatmap data={data.hourlyActivity} labels={hourlyLabels} />
+              <p className="text-[10px] text-muted-foreground mt-3 text-center">{s.hourlyNote}</p>
             </section>
 
             {/* 8 ── Testimonials */}
-            <TestimonialCarousel items={data.testimonials} />
+            <TestimonialCarousel items={data.testimonials} label={s.testimonialsLabel} />
 
-            {/* 9 ── JITAI + Speed 2-col */}
+            {/* 9 ── Acceptance + Response 2-col */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-card border border-border/60 rounded-3xl p-4 shadow-sm">
                 <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center mb-3">
                   <Heart className="w-5 h-5 text-rose-500" />
                 </div>
                 <p className="text-2xl font-extrabold text-foreground">{data.acceptanceRate}%</p>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-tight">معدل قبول تدخلات الدعم الذكي</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{s.acceptanceLabel}</p>
               </div>
               <div className="bg-card border border-border/60 rounded-3xl p-4 shadow-sm">
                 <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center mb-3">
                   <Clock className="w-5 h-5 text-indigo-600" />
                 </div>
                 <p className="text-2xl font-extrabold text-foreground">
-                  {(data.impact.avgResponseMs / 1000).toFixed(1)}ث
+                  {(data.impact.avgResponseMs / 1000).toFixed(1)}{s.responseUnit}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-tight">متوسط زمن الرد من المساعد AI</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{s.responseLabel}</p>
               </div>
             </div>
 
-            {/* 10 ── Year 1 impact projection */}
+            {/* 10 ── Year 1 impact */}
             <section className="bg-gradient-to-br from-slate-900 to-primary/90 rounded-3xl p-6 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-32 h-32 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
               <div className="relative">
-                <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mb-1">🎯 رؤية أمان 2025</p>
-                <h3 className="text-white font-extrabold text-xl mb-4">هدف السنة الأولى</h3>
+                <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mb-1">{s.impactVision}</p>
+                <h3 className="text-white font-extrabold text-xl mb-4">{s.impactTitle}</h3>
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {[
-                    { val: `${(data.impact.targetUsers / 1000).toFixed(0)}ك+`, label: "مستخدم يستهدفهم أمان", icon: "👥" },
-                    { val: `${data.impact.crisisPrevented.toLocaleString()}+`, label: "أزمة حادة تمّ التدخل فيها", icon: "🛡️" },
-                    { val: `${data.impact.countriesServed}+`, label: "دولة يصل إليها التطبيق", icon: "🌍" },
-                    { val: "24/7", label: "وصول مجاني بلا انقطاع", icon: "🔓" },
+                    { val: `${(data.impact.targetUsers / 1000).toFixed(0)}k+`, label: s.impactUsers, icon: "👥" },
+                    { val: `${data.impact.crisisPrevented.toLocaleString(localeCode)}+`, label: s.impactCrisis, icon: "🛡️" },
+                    { val: `${data.impact.countriesServed}+`, label: s.impactCountries, icon: "🌍" },
+                    { val: "24/7", label: s.impactAccess, icon: "🔓" },
                   ].map((item) => (
                     <div key={item.label} className="bg-white/10 rounded-2xl p-3 backdrop-blur-sm">
                       <p className="text-2xl mb-1">{item.icon}</p>
@@ -532,9 +557,8 @@ export default function Stats() {
                 </div>
                 <div className="bg-white/10 rounded-2xl p-3 backdrop-blur-sm">
                   <p className="text-[11px] text-white/80 leading-relaxed">
-                    أمان يؤمن بأن الصحة النفسية حق إنساني لا رفاهية.
-                    في السودان الذي تمزّقه الحرب، نسعى لنكون الصوت الذي يقول:{" "}
-                    <strong className="text-white">أنت مو لوحدك.</strong>
+                    {s.impactQuote}{" "}
+                    <strong className="text-white">{s.impactSlogan}</strong>
                   </p>
                 </div>
               </div>
@@ -542,8 +566,8 @@ export default function Stats() {
 
             {lastUpdated && (
               <p className="text-center text-[11px] text-muted-foreground pb-2">
-                آخر تحديث: {lastUpdated.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}
-                {" "}· يتحدث تلقائياً كل دقيقة
+                {s.lastUpdated} {lastUpdated.toLocaleTimeString(localeCode, { hour: "2-digit", minute: "2-digit" })}
+                {" "}· {s.autoRefresh}
               </p>
             )}
           </>
