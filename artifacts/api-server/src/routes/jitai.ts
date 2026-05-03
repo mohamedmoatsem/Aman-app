@@ -1,12 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, moodLogsTable, motivationPatternsTable } from "@workspace/db";
-import { eq, desc, and } from "drizzle-orm";
-
-function getSudanDate(): string {
-  const now = new Date();
-  const sudanTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-  return sudanTime.toISOString().split("T")[0];
-}
+import { db } from "@workspace/db";
+import { sql } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -43,19 +37,20 @@ const INTERVENTIONS = [
   },
 ];
 
-function hasConsecutiveLowMoodDays(logs: { logDate: string; score: number }[]): boolean {
+function hasConsecutiveLowMoodDays(
+  logs: { log_date: string; score: number }[]
+): boolean {
   if (logs.length < CONSECUTIVE_DAYS_REQUIRED) return false;
 
   const sorted = [...logs].sort(
-    (a, b) => new Date(b.logDate).getTime() - new Date(a.logDate).getTime()
+    (a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime()
   );
 
   let consecutiveCount = 0;
   let prevDate: Date | null = null;
 
   for (const log of sorted) {
-    const currentDate = new Date(log.logDate);
-
+    const currentDate = new Date(log.log_date);
     if (log.score <= LOW_MOOD_THRESHOLD) {
       if (prevDate === null) {
         consecutiveCount = 1;
@@ -63,24 +58,15 @@ function hasConsecutiveLowMoodDays(logs: { logDate: string; score: number }[]): 
         const dayDiff = Math.round(
           (prevDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
         );
-        if (dayDiff === 1) {
-          consecutiveCount++;
-        } else {
-          consecutiveCount = 1;
-        }
+        consecutiveCount = dayDiff === 1 ? consecutiveCount + 1 : 1;
       }
-
       prevDate = currentDate;
-
-      if (consecutiveCount >= CONSECUTIVE_DAYS_REQUIRED) {
-        return true;
-      }
+      if (consecutiveCount >= CONSECUTIVE_DAYS_REQUIRED) return true;
     } else {
       consecutiveCount = 0;
       prevDate = null;
     }
   }
-
   return false;
 }
 
@@ -89,27 +75,23 @@ router.get("/jitai/:userId", async (req, res) => {
     const { userId } = req.params;
     if (!userId) return res.status(400).json({ error: "userId مطلوب" });
 
-    const logs = await db
-      .select({ logDate: moodLogsTable.logDate, score: moodLogsTable.score })
-      .from(moodLogsTable)
-      .where(eq(moodLogsTable.userId, userId))
-      .orderBy(desc(moodLogsTable.logDate))
-      .limit(14);
+    const result = await db.execute(sql`
+      SELECT log_date::text AS log_date, score
+      FROM mood_logs
+      WHERE user_id = ${userId}
+      ORDER BY log_date DESC
+      LIMIT 14
+    `);
 
+    const logs = (result.rows ?? []) as { log_date: string; score: number }[];
     const triggered = hasConsecutiveLowMoodDays(logs);
 
     if (!triggered) {
       return res.json({ triggered: false });
     }
 
-    const today = getSudanDate();
-    await db
-      .insert(motivationPatternsTable)
-      .values({ userId, logDate: today, jitaiTriggered: true })
-      .onConflictDoNothing();
-
-    const daysSince = logs.filter((l) => l.score <= LOW_MOOD_THRESHOLD).length;
-    const intervention = INTERVENTIONS[daysSince % INTERVENTIONS.length];
+    const lowMoodCount = logs.filter((l) => l.score <= LOW_MOOD_THRESHOLD).length;
+    const intervention = INTERVENTIONS[lowMoodCount % INTERVENTIONS.length];
 
     return res.json({
       triggered: true,
@@ -127,14 +109,10 @@ router.post("/jitai/accepted", async (req, res) => {
     const { userId } = req.body as { userId: string };
     if (!userId) return res.status(400).json({ error: "userId مطلوب" });
 
-    const today = getSudanDate();
-    await db
-      .insert(motivationPatternsTable)
-      .values({ userId, logDate: today, jitaiTriggered: true, jitaiAccepted: true })
-      .onConflictDoUpdate({
-        target: [motivationPatternsTable.userId, motivationPatternsTable.logDate],
-        set: { jitaiAccepted: true },
-      });
+    await db.execute(sql`
+      INSERT INTO motivation_patterns (jitai_triggered, jitai_accepted)
+      VALUES (true, true)
+    `);
 
     return res.json({ ok: true });
   } catch (err: any) {

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, moodLogsTable, motivationPatternsTable } from "@workspace/db";
+import { db } from "@workspace/db";
 import { sql } from "drizzle-orm";
 
 const router: IRouter = Router();
@@ -111,17 +111,19 @@ router.get("/stats", async (req, res) => {
       communityResult,
       convResult,
     ] = await Promise.all([
-      db.select({ count: sql<number>`count(*)::int` }).from(usersTable),
+      db.execute(sql`SELECT count(*)::int AS count FROM users`),
 
-      db.select({
-        total: sql<number>`count(*)::int`,
-        avgScore: sql<number>`round(avg(score)::numeric, 2)`,
-      }).from(moodLogsTable),
+      db.execute(sql`
+        SELECT count(*)::int AS total,
+               round(avg(score)::numeric, 2) AS "avgScore"
+        FROM mood_logs
+      `),
 
-      db.select({
-        triggered: sql<number>`count(*) filter (where jitai_triggered)::int`,
-        accepted:  sql<number>`count(*) filter (where jitai_accepted)::int`,
-      }).from(motivationPatternsTable),
+      db.execute(sql`
+        SELECT count(*) filter (where jitai_triggered)::int AS triggered,
+               count(*) filter (where jitai_accepted)::int  AS accepted
+        FROM motivation_patterns
+      `),
 
       db.execute(sql`
         SELECT log_date::text, round(avg(score)::numeric,2) as avg_score, count(*)::int as entries
@@ -155,11 +157,11 @@ router.get("/stats", async (req, res) => {
     ]);
 
     // ── Real DB values ──────────────────────────────────────────────────
-    const realUsers    = usersResult[0]?.count ?? 0;
-    const realLogs     = moodResult[0]?.total  ?? 0;
-    const avgScore     = Number(moodResult[0]?.avgScore ?? 3.2);
-    const jitaiTriggered = jitaiResult[0]?.triggered ?? 0;
-    const jitaiAccepted  = jitaiResult[0]?.accepted  ?? 0;
+    const realUsers    = Number((usersResult.rows?.[0] as any)?.count   ?? 0);
+    const realLogs     = Number((moodResult.rows?.[0]  as any)?.total   ?? 0);
+    const avgScore     = Number((moodResult.rows?.[0]  as any)?.avgScore ?? 3.2);
+    const jitaiTriggered = Number((jitaiResult.rows?.[0] as any)?.triggered ?? 0);
+    const jitaiAccepted  = Number((jitaiResult.rows?.[0] as any)?.accepted  ?? 0);
     const acceptanceRate = jitaiTriggered > 0
       ? Math.round((jitaiAccepted / jitaiTriggered) * 100)
       : 78; // demo fallback

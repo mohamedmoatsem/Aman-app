@@ -17,7 +17,9 @@ export default function OfflineBanner() {
   useEffect(() => {
     if (!isOnline) {
       wasOffline.current = true;
-    } else if (wasOffline.current) {
+      return;
+    }
+    if (wasOffline.current) {
       wasOffline.current = false;
       setJustReconnected(true);
       const timer = setTimeout(() => setJustReconnected(false), 3000);

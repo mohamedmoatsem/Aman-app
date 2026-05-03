@@ -76,10 +76,10 @@ router.get("/conversations", async (req, res) => {
       WHERE c.user1_id = ${userId} OR c.user2_id = ${userId}
       ORDER BY last_message_at DESC NULLS LAST
     `);
-    res.json(convs.rows ?? []);
+    return res.json(convs.rows ?? []);
   } catch (err: any) {
     console.error("[conversations] error:", err?.message);
-    res.status(500).json({ error: "فشل في جلب المحادثات" });
+    return res.status(500).json({ error: "فشل في جلب المحادثات" });
   }
 });
 
@@ -97,10 +97,10 @@ router.get("/:conversationId", async (req, res) => {
       ORDER BY m.timestamp ASC
       LIMIT 200
     `);
-    res.json(result.rows ?? []);
+    return res.json(result.rows ?? []);
   } catch (err: any) {
     console.error("[messages GET] error:", err?.message);
-    res.status(500).json({ error: "فشل في جلب الرسائل" });
+    return res.status(500).json({ error: "فشل في جلب الرسائل" });
   }
 });
 
@@ -145,10 +145,10 @@ router.post("/start", async (req, res) => {
         ${'السلام عليكم ورحمة الله. أنا هنا للاستماع إليكم وتقديم الدعم المناسب. تفضل/تفضلي بمشاركتي ما تودّ/تودّين التحدث عنه.'})
     `);
 
-    res.status(201).json({ conversationId: convId, userId });
+    return res.status(201).json({ conversationId: convId, userId });
   } catch (err: any) {
     console.error("[start] error:", err?.message);
-    res.status(500).json({ error: "فشل في بدء المحادثة" });
+    return res.status(500).json({ error: "فشل في بدء المحادثة" });
   }
 });
 
@@ -175,10 +175,10 @@ router.post("/:conversationId/send", async (req, res) => {
       RETURNING id, conversation_id, sender_id, message_text, timestamp, is_read
     `);
 
-    res.status(201).json(msg.rows![0]);
+    return res.status(201).json(msg.rows![0]);
   } catch (err: any) {
     console.error("[send] error:", err?.message);
-    res.status(500).json({ error: "فشل في إرسال الرسالة" });
+    return res.status(500).json({ error: "فشل في إرسال الرسالة" });
   }
 });
 
@@ -199,9 +199,9 @@ router.post("/:conversationId/read", async (req, res) => {
       UPDATE messages SET is_read = true
       WHERE conversation_id = ${convId} AND sender_id != ${userId} AND is_read = false
     `);
-    res.json({ ok: true });
+    return res.json({ ok: true });
   } catch {
-    res.json({ ok: true });
+    return res.json({ ok: true });
   }
 });
 

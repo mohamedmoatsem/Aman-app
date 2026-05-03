@@ -72,10 +72,10 @@ router.post("/community", async (req, res) => {
         created_at  AS "createdAt"
     `);
 
-    res.status(201).json(result.rows?.[0] ?? {});
+    return res.status(201).json(result.rows?.[0] ?? {});
   } catch (err: any) {
     console.error("[community POST] error:", err?.message);
-    res.status(500).json({ error: "Failed to create community post" });
+    return res.status(500).json({ error: "Failed to create community post" });
   }
 });
 
