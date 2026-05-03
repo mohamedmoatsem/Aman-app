@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Link } from "wouter";
 import { Phone, BookHeart, CalendarDays, Users, ShieldCheck, HeartHandshake, Mail, Loader2, CheckCircle2, MessageCircleHeart, X, ArrowLeft, Stethoscope } from "lucide-react";
 import MobileLayout from "@/components/layout/MobileLayout";
+import ProtectionSection from "@/components/home/ProtectionSection";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const MOOD_SCORES = [1, 2, 3, 5];
@@ -392,6 +393,9 @@ export default function Home() {
             <p className="text-foreground/80 leading-relaxed text-sm">{t.home.tipText}</p>
           </div>
         </section>
+
+        {/* Protection Section */}
+        <ProtectionSection />
 
         {/* Doctors messaging CTA */}
         <section>
