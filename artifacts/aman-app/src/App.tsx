@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import DisclaimerModal from "@/components/ui/DisclaimerModal";
 
 import Home from "@/pages/home";
 import Resources from "@/pages/resources";
@@ -54,6 +55,7 @@ function App() {
           <TooltipProvider>
             <Navigation />
             <Toaster />
+            <DisclaimerModal />
           </TooltipProvider>
         </WouterRouter>
       </LanguageProvider>
