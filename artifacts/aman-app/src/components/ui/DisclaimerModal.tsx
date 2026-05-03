@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldAlert, CheckCircle2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const STORAGE_KEY = "aman_disclaimer_accepted";
 
 export default function DisclaimerModal() {
   const [visible, setVisible] = useState(false);
+  const { t } = useLanguage();
+  const d = t.disclaimer;
 
   useEffect(() => {
     const accepted = localStorage.getItem(STORAGE_KEY);
@@ -39,7 +42,7 @@ export default function DisclaimerModal() {
             aria-modal="true"
             aria-labelledby="disclaimer-title"
             aria-describedby="disclaimer-body"
-            dir="rtl"
+            dir={t.dir}
             initial={{ opacity: 0, scale: 0.94, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 24 }}
@@ -58,9 +61,9 @@ export default function DisclaimerModal() {
                     id="disclaimer-title"
                     className="text-xl font-extrabold text-white leading-tight"
                   >
-                    تنبيه هام
+                    {d.title}
                   </h2>
-                  <p className="text-white/80 text-xs mt-0.5">يُرجى القراءة بعناية قبل المتابعة</p>
+                  <p className="text-white/80 text-xs mt-0.5">{d.subtitle}</p>
                 </div>
               </div>
 
@@ -68,19 +71,20 @@ export default function DisclaimerModal() {
               <div className="px-6 pt-6 pb-5">
                 <p
                   id="disclaimer-body"
-                  className="text-gray-700 text-sm leading-[1.9] text-right"
+                  className={`text-gray-700 text-sm leading-[1.9] ${t.dir === "rtl" ? "text-right" : "text-left"}`}
                 >
-                  مرحباً بك في تطبيق <span className="font-bold text-primary">أمان</span>.
-                  نود التأكيد أن هذا التطبيق مخصص للدعم النفسي ومشاركة الموارد المعرفية فقط،
-                  وهو <span className="font-semibold text-orange-600">ليس بديلاً</span> عن الاستشارة
-                  الطبية المتخصصة أو التدخل النفسي المهني.
+                  {d.body.split(d.appName)[0]}
+                  <span className="font-bold text-primary">{d.appName}</span>
+                  {d.body.split(d.appName)[1]?.split(d.notReplace)[0] ?? ""}
+                  <span className="font-semibold text-orange-600">{d.notReplace}</span>
+                  {d.body.split(d.notReplace)[1] ?? ""}
                 </p>
 
                 {/* Emergency callout */}
-                <div className="mt-5 bg-red-50 border border-red-200 rounded-2xl px-4 py-3.5 flex items-start gap-3 text-right">
+                <div className={`mt-5 bg-red-50 border border-red-200 rounded-2xl px-4 py-3.5 flex items-start gap-3 ${t.dir === "rtl" ? "text-right" : "text-left"}`}>
                   <div className="w-1.5 h-full min-h-[32px] rounded-full bg-red-400 shrink-0 mt-0.5" />
                   <p className="text-red-700 text-[13px] leading-relaxed">
-                    في حالات الطوارئ النفسية، يرجى التوجه فوراً لأقرب مركز طبي أو التواصل مع الجهات المختصة.
+                    {d.emergency}
                   </p>
                 </div>
               </div>
@@ -93,7 +97,7 @@ export default function DisclaimerModal() {
                   autoFocus
                 >
                   <CheckCircle2 className="w-5 h-5" />
-                  أوافق وأفهم ذلك
+                  {d.accept}
                 </button>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "wouter";
-import { Phone, BookHeart, CalendarDays, Users, ShieldCheck, HeartHandshake, Mail, Loader2, CheckCircle2, MessageCircleHeart, X, ArrowLeft, Stethoscope } from "lucide-react";
+import { Phone, BookHeart, CalendarDays, Users, ShieldCheck, HeartHandshake, Mail, Loader2, CheckCircle2, MessageCircleHeart, X, ArrowLeft, ArrowRight, Stethoscope } from "lucide-react";
 import MobileLayout from "@/components/layout/MobileLayout";
 import ProtectionSection from "@/components/home/ProtectionSection";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -76,15 +76,18 @@ function getDeviceId(): string {
 interface JitaiIntervention {
   id: string;
   titleAr: string;
+  titleEn: string;
   messageAr: string;
+  messageEn: string;
   actionAr: string;
+  actionEn: string;
   actionPath: string;
   icon: string;
   color: string;
 }
 
 export default function Home() {
-  const { t, toggleLang } = useLanguage();
+  const { t, lang, toggleLang } = useLanguage();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [email, setEmail] = useState("");
   const [subStatus, setSubStatus] = useState<"idle" | "loading" | "success" | "duplicate" | "error">("idle");
@@ -232,7 +235,7 @@ export default function Home() {
               className="flex items-center justify-center gap-3 w-full bg-emerald-500/80 backdrop-blur-md border border-emerald-400/40 text-white px-6 py-4 rounded-2xl font-semibold text-lg hover:bg-emerald-500/90 active:scale-95 transition-all duration-200 shadow-lg shadow-emerald-900/20"
             >
               <MessageCircleHeart className="w-5 h-5" />
-              <span>تكلّم مع مساعد أمان 🌿</span>
+              <span>{t.home.chatAssistantBtn}</span>
             </Link>
           </div>
         </div>
@@ -246,7 +249,7 @@ export default function Home() {
             <button
               onClick={() => setJitaiVisible(false)}
               className="absolute top-3 left-3 w-7 h-7 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors"
-              aria-label="إغلاق"
+              aria-label={t.home.jitaiClose}
             >
               <X className="w-4 h-4 text-foreground/60" />
             </button>
@@ -255,13 +258,13 @@ export default function Home() {
               <span className="text-3xl leading-none">{jitai.icon}</span>
               <div>
                 <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full mb-2 inline-block ${jitaiStyle.badge}`}>
-                  تدخل مخصص لك
+                  {t.home.jitaiBadge}
                 </span>
                 <h3 className="font-extrabold text-base text-foreground leading-snug">
-                  {jitai.titleAr}
+                  {lang === "en" ? jitai.titleEn : jitai.titleAr}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                  {jitai.messageAr}
+                  {lang === "en" ? jitai.messageEn : jitai.messageAr}
                 </p>
               </div>
             </div>
@@ -271,8 +274,8 @@ export default function Home() {
               onClick={handleJitaiAccept}
               className={`flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 ${jitaiStyle.btn}`}
             >
-              <span>{jitai.actionAr}</span>
-              <ArrowLeft className="w-4 h-4" />
+              <span>{lang === "en" ? jitai.actionEn : jitai.actionAr}</span>
+              {t.dir === "rtl" ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
             </Link>
           </section>
         )}
@@ -307,7 +310,7 @@ export default function Home() {
                 {moodSaved && (
                   <p className="text-xs mt-2 opacity-60 flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3" />
-                    تم حفظ حالتك المزاجية
+                    {t.home.moodSaved}
                   </p>
                 )}
               </div>
@@ -408,18 +411,18 @@ export default function Home() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">4 مختصين متاحون</span>
+                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">{t.home.doctorsBadge}</span>
               </div>
-              <h3 className="font-bold text-foreground text-base leading-tight">تحدّث مع مختص نفسي</h3>
-              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">محادثة آمنة ومشفّرة — بهوية حقيقية أو مجهولة</p>
+              <h3 className="font-bold text-foreground text-base leading-tight">{t.home.doctorsTitle}</h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.home.doctorsDesc}</p>
             </div>
-            <ArrowLeft className="w-5 h-5 text-primary shrink-0" />
+            {t.dir === "rtl" ? <ArrowLeft className="w-5 h-5 text-primary shrink-0" /> : <ArrowRight className="w-5 h-5 text-primary shrink-0" />}
           </Link>
         </section>
 
         {/* Presentation Links */}
         <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">🎯 عرض التقديم</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">{t.home.presentationTitle}</h2>
           <div className="flex flex-col gap-3">
             <Link
               href="/stats"
@@ -429,10 +432,10 @@ export default function Home() {
                 📊
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-sky-700">الإحصائيات الحية</h3>
-                <p className="text-xs text-sky-600/80 mt-0.5">أثر أمان في الوقت الفعلي — عدد المستخدمين، المزاج، JITAI</p>
+                <h3 className="font-bold text-sky-700">{t.home.presentationStatsTitle}</h3>
+                <p className="text-xs text-sky-600/80 mt-0.5">{t.home.presentationStatsDesc}</p>
               </div>
-              <ArrowLeft className="w-4 h-4 text-sky-400" />
+              {t.dir === "rtl" ? <ArrowLeft className="w-4 h-4 text-sky-400" /> : <ArrowRight className="w-4 h-4 text-sky-400" />}
             </Link>
 
             <Link
@@ -443,10 +446,10 @@ export default function Home() {
                 🎬
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-violet-700">فيديو تعريفي بأمان</h3>
-                <p className="text-xs text-violet-600/80 mt-0.5">المشكلة ← الحل ← الميزات ← الأثر المتوقع (دقيقتان)</p>
+                <h3 className="font-bold text-violet-700">{t.home.presentationVideoTitle}</h3>
+                <p className="text-xs text-violet-600/80 mt-0.5">{t.home.presentationVideoDesc}</p>
               </div>
-              <ArrowLeft className="w-4 h-4 text-violet-400" />
+              {t.dir === "rtl" ? <ArrowLeft className="w-4 h-4 text-violet-400" /> : <ArrowRight className="w-4 h-4 text-violet-400" />}
             </Link>
           </div>
         </section>

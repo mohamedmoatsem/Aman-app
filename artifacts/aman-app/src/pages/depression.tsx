@@ -9,7 +9,7 @@ type Tab = "stories" | "techniques" | "strategies";
 
 export default function Depression() {
   const [, navigate] = useLocation();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const d = t.depression;
 
   const [activeTab, setActiveTab] = useState<Tab>("stories");
@@ -89,8 +89,8 @@ export default function Depression() {
                 {story.initials}
               </div>
               <div>
-                <p className="font-bold text-foreground">{story.name}</p>
-                <p className="text-xs text-muted-foreground">{story.age} {d.storiesAge} · {d.storiesDuration}: {story.duration}</p>
+                <p className="font-bold text-foreground">{lang === "en" ? story.nameEn : story.name}</p>
+                <p className="text-xs text-muted-foreground">{story.age} {d.storiesAge} · {d.storiesDuration}: {lang === "en" ? story.durationEn : story.duration}</p>
               </div>
               <div className="mr-auto flex gap-1">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -98,14 +98,14 @@ export default function Depression() {
                 ))}
               </div>
             </div>
-            <p className="text-sm text-foreground/80 leading-relaxed mb-3 italic">"{story.story}"</p>
+            <p className="text-sm text-foreground/80 leading-relaxed mb-3 italic">"{lang === "en" ? story.storyEn : story.story}"</p>
             <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 mb-2">
               <p className="text-xs font-bold text-emerald-700 mb-1">🔄 {d.storiesTurning}</p>
-              <p className="text-xs text-emerald-800 leading-relaxed">{story.turning}</p>
+              <p className="text-xs text-emerald-800 leading-relaxed">{lang === "en" ? story.turningEn : story.turning}</p>
             </div>
             <div className="bg-primary/5 border border-primary/10 rounded-2xl p-3">
               <p className="text-xs font-bold text-primary mb-1">✨ {d.storiesNow}</p>
-              <p className="text-xs text-foreground/70 leading-relaxed">{story.now}</p>
+              <p className="text-xs text-foreground/70 leading-relaxed">{lang === "en" ? story.nowEn : story.now}</p>
             </div>
           </div>
         ))}
@@ -121,15 +121,15 @@ export default function Depression() {
                 {tech.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-foreground text-base leading-tight">{tech.title}</h3>
+                <h3 className="font-bold text-foreground text-base leading-tight">{lang === "en" ? tech.titleEn : tech.title}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">{tech.subtitle}</p>
               </div>
             </div>
-            <p className="text-sm text-foreground/80 leading-relaxed mb-3">{tech.description}</p>
+            <p className="text-sm text-foreground/80 leading-relaxed mb-3">{lang === "en" ? tech.descriptionEn : tech.description}</p>
             <div className="bg-muted/50 rounded-2xl p-3 mb-3">
               <p className="text-xs font-bold text-foreground mb-2">{d.techniquesSteps}:</p>
               <ol className="flex flex-col gap-1">
-                {tech.steps.map((step, i) => (
+                {(lang === "en" ? tech.stepsEn : tech.steps).map((step, i) => (
                   <li key={i} className="flex items-start gap-2 text-xs text-foreground/80">
                     <span
                       className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 mt-0.5"
@@ -142,7 +142,7 @@ export default function Depression() {
             </div>
             <div className="bg-amber-50 border border-amber-100 rounded-xl p-2.5">
               <p className="text-[11px] text-amber-800 leading-relaxed">
-                <strong>📊 {d.techniquesEvidence}:</strong> {tech.evidence}
+                <strong>📊 {d.techniquesEvidence}:</strong> {lang === "en" ? tech.evidenceEn : tech.evidence}
               </p>
             </div>
           </div>
@@ -158,11 +158,11 @@ export default function Depression() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                    {strat.category}
+                    {lang === "en" ? strat.categoryEn : strat.category}
                   </span>
                 </div>
-                <h3 className="font-bold text-foreground text-sm leading-tight">{strat.title}</h3>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">{strat.summary}</p>
+                <h3 className="font-bold text-foreground text-sm leading-tight">{lang === "en" ? strat.titleEn : strat.title}</h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">{lang === "en" ? strat.summaryEn : strat.summary}</p>
               </div>
               {expandedStrategy === strat.id
                 ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -172,7 +172,7 @@ export default function Depression() {
 
             {expandedStrategy === strat.id && (
               <div className="px-4 pb-4 border-t border-border">
-                <p className="text-sm text-foreground/80 leading-relaxed mt-3 mb-3">{strat.detail}</p>
+                <p className="text-sm text-foreground/80 leading-relaxed mt-3 mb-3 whitespace-pre-line">{lang === "en" ? strat.detailEn : strat.detail}</p>
                 {strat.references.length > 0 && (
                   <div className="bg-muted/50 rounded-xl p-3">
                     <p className="text-[11px] font-bold text-muted-foreground mb-1.5">{d.strategiesReferences}:</p>
