@@ -83,7 +83,7 @@ const CONTENT = {
   },
 };
 
-const EnglishText = ({ children, className = '' }) => (
+const EnglishText = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
   <div
     dir="ltr"
     className={`font-medium tracking-wide text-white/75 ${className}`}
@@ -93,15 +93,26 @@ const EnglishText = ({ children, className = '' }) => (
   </div>
 );
 
-const BilingualText = ({ ar, en, arClassName = '', enClassName = '', wrapperClassName = '', as = 'div' }) => {
-  const Tag = as;
-  return (
-    <div className={wrapperClassName}>
-      <Tag className={arClassName}>{ar}</Tag>
-      <EnglishText className={enClassName}>{en}</EnglishText>
-    </div>
-  );
-};
+const BilingualText = ({
+  ar,
+  en,
+  arClassName = '',
+  enClassName = '',
+  wrapperClassName = '',
+  as: Tag = 'div',
+}: {
+  ar: React.ReactNode;
+  en: React.ReactNode;
+  arClassName?: string;
+  enClassName?: string;
+  wrapperClassName?: string;
+  as?: keyof React.JSX.IntrinsicElements;
+}) => (
+  <div className={wrapperClassName}>
+    <Tag className={arClassName}>{ar}</Tag>
+    <EnglishText className={enClassName}>{en}</EnglishText>
+  </div>
+);
 
 const Act1Problem = () => {
   const [phase, setPhase] = useState(1);

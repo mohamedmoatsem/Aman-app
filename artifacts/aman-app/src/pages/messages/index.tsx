@@ -107,7 +107,7 @@ export default function Messages() {
             <ConversationList
               conversations={conversations}
               loading={loading}
-              activeId={activeConv?.id ?? null}
+              activeId={null}
               deviceId={deviceId}
               onSelect={handleSelect}
             />

@@ -14,7 +14,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return (localStorage.getItem("aman-lang") as Lang) || "ar";
   });
 
-  const t = translations[lang];
+  const t = translations[lang] as Translations;
 
   useEffect(() => {
     localStorage.setItem("aman-lang", lang);
