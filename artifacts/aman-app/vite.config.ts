@@ -16,11 +16,14 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
+      // Use manifest.json so it matches the existing <link rel="manifest"> in index.html
+      manifestFilename: "manifest.json",
+      // Let VitePWA handle SW injection; the existing public/sw.js is superseded
+      injectRegister: "auto",
       manifest: {
-        name: "أمان — دعم نفسي",
+        name: "أمان — دعم نفسي ذكي",
         short_name: "أمان",
-        description: "مساحتك الآمنة للدعم النفسي والصحة العقلية",
+        description: "دعم الصحة النفسية للمتضررين من النزاعات",
         theme_color: "#0EA5E9",
         background_color: "#ffffff",
         display: "standalone",
@@ -29,14 +32,34 @@ export default defineConfig({
         start_url: basePath,
         lang: "ar",
         dir: "rtl",
+        categories: ["health", "lifestyle"],
+        prefer_related_applications: false,
+        // Use icons that actually exist in the public directory
         icons: [
-          { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
-          { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+          {
+            src: "favicon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any maskable",
+          },
+          {
+            src: "images/logo.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "images/logo.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        // Only precache essential assets, not everything (avoids 2MB+ precache)
+        globPatterns: ["**/*.{js,css,html,svg}"],
+        globIgnores: ["**/music.mp3", "**/opengraph.jpg"],
         navigateFallback: null,
         runtimeCaching: [
           {
@@ -56,6 +79,11 @@ export default defineConfig({
               networkTimeoutSeconds: 5,
             },
           },
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com/,
+            handler: "StaleWhileRevalidate",
+            options: { cacheName: "google-fonts-cache" },
+          },
         ],
       },
     }),
@@ -71,6 +99,17 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Split large vendor chunks to avoid the 500kB warning
+        manualChunks: {
+          "vendor-react": ["react", "react-dom"],
+          "vendor-ui": ["framer-motion", "lucide-react"],
+          "vendor-query": ["@tanstack/react-query"],
+          "vendor-charts": ["recharts"],
+        },
+      },
+    },
   },
   server: {
     port,
