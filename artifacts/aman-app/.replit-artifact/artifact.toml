@@ -22,7 +22,7 @@ PORT = "25816"
 BASE_PATH = "/"
 
 [services.production]
-build = ["pnpm", "--filter", "@workspace/aman-app", "run", "build"]
+build = ["bash", "-c", "cd /home/runner/workspace/artifacts/aman-app && node --stack-size=65536 node_modules/vite/bin/vite.js build --config vite.config.ts"]
 publicDir = "artifacts/aman-app/dist/public"
 serve = "static"
 
