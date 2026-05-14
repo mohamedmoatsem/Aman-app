@@ -103,17 +103,9 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        // Split large vendor chunks to avoid the 500kB warning
-        manualChunks: {
-          "vendor-react": ["react", "react-dom"],
-          "vendor-ui": ["framer-motion", "lucide-react"],
-          "vendor-query": ["@tanstack/react-query"],
-          "vendor-charts": ["recharts"],
-        },
-      },
-    },
+    // Suppress the 500kB warning — manualChunks can cause stack overflow in rollup
+    // on memory-constrained deployment environments due to circular dep analysis
+    chunkSizeWarningLimit: 1000,
   },
   server: {
     port,
