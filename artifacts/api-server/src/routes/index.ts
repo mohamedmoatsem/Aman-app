@@ -9,9 +9,15 @@ import communityRouter from "./community.js";
 import workshopsRouter from "./workshops.js";
 import resourcesRouter from "./resources.js";
 import messagesRouter from "./messages.js";
+import authRouter from "./auth.js";
+import { optionalAuth } from "../middleware/jwtAuth.js";
 
 const router = Router();
 
+// attach user from JWT when present (public routes stay public)
+router.use(optionalAuth);
+
+router.use(authRouter);
 router.use(healthRouter);
 router.use(moodRouter);
 router.use(jitaiRouter);

@@ -3,16 +3,40 @@
  * Do not edit manually.
  * Api
  * Amān App API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 
+export * from "./acceptJitai200";
+export * from "./authResponse";
 export * from "./communityPost";
+export * from "./conversation";
+export * from "./conversationType";
 export * from "./createCommunityPost";
 export * from "./createResource";
 export * from "./createWorkshop";
 export * from "./errorResponse";
+export * from "./getConversationsParams";
+export * from "./getMe200";
 export * from "./healthStatus";
+export * from "./jitaiAcceptBody";
+export * from "./jitaiCheckResponse";
+export * from "./jitaiIntervention";
+export * from "./loginBody";
+export * from "./markRead200";
+export * from "./markReadBody";
+export * from "./message";
+export * from "./moodLogBody";
+export * from "./moodLogResponse";
+export * from "./professional";
+export * from "./registerBody";
+export * from "./registerBodyRole";
 export * from "./resource";
+export * from "./sendMessage200";
+export * from "./sendMessageBody";
+export * from "./startConversationBody";
+export * from "./startConversationResponse";
+export * from "./statsResponse";
 export * from "./subscribeBody";
 export * from "./subscribeResponse";
+export * from "./userProfile";
 export * from "./workshop";

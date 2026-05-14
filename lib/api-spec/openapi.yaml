@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Api
-  version: 0.1.0
+  version: 0.2.0
   description: Amān App API
 servers:
   - url: /api
@@ -9,12 +9,23 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: mood
+    description: Mood tracking
+  - name: jitai
+    description: Just-In-Time Adaptive Interventions
+  - name: messages
+    description: Messaging between users and professionals
+  - name: stats
+    description: Statistics and analytics
   - name: resources
     description: Resources and tips
   - name: workshops
     description: Workshops
   - name: community
     description: Community posts
+
 paths:
   /healthz:
     get:
@@ -28,6 +39,312 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── Auth ────────────────────────────────────────────
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: Registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Username already taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login and receive a JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/UserProfile"
+                required: [user]
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Mood ────────────────────────────────────────────
+  /mood:
+    post:
+      operationId: logMood
+      tags: [mood]
+      summary: Log a mood entry for a device user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoodLogBody"
+      responses:
+        "201":
+          description: Mood logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodLogResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── JITAI ───────────────────────────────────────────
+  /jitai/{userId}:
+    get:
+      operationId: checkJitai
+      tags: [jitai]
+      summary: Check whether a JITAI intervention should be triggered
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: JITAI check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JitaiCheckResponse"
+
+  /jitai/accepted:
+    post:
+      operationId: acceptJitai
+      tags: [jitai]
+      summary: Record that a user accepted a JITAI intervention
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JitaiAcceptBody"
+      responses:
+        "200":
+          description: Accepted recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                required: [ok]
+
+  # ── Stats ───────────────────────────────────────────
+  /stats:
+    get:
+      operationId: getStats
+      tags: [stats]
+      summary: Get aggregate app statistics
+      responses:
+        "200":
+          description: Stats object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsResponse"
+
+  # ── Messages ────────────────────────────────────────
+  /messages/professionals:
+    get:
+      operationId: getProfessionals
+      tags: [messages]
+      summary: List available mental health professionals
+      responses:
+        "200":
+          description: List of professionals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Professional"
+
+  /messages/conversations:
+    get:
+      operationId: getConversations
+      tags: [messages]
+      summary: Get conversations for the current device user
+      parameters:
+        - name: deviceId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+
+  /messages/start:
+    post:
+      operationId: startConversation
+      tags: [messages]
+      summary: Start a new conversation with a professional
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartConversationBody"
+      responses:
+        "200":
+          description: Conversation started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StartConversationResponse"
+
+  /messages/{conversationId}:
+    get:
+      operationId: getMessages
+      tags: [messages]
+      summary: Get messages for a conversation
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+
+  /messages/{conversationId}/send:
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message in a conversation
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageBody"
+      responses:
+        "200":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                required: [ok]
+
+  /messages/{conversationId}/read:
+    post:
+      operationId: markRead
+      tags: [messages]
+      summary: Mark messages in a conversation as read
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId:
+                  type: string
+              required: [deviceId]
+      responses:
+        "200":
+          description: Marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                required: [ok]
+
+  # ── Resources ────────────────────────────────────────
   /resources:
     get:
       operationId: getResources
@@ -59,6 +376,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Resource"
+
   /resources/{id}:
     get:
       operationId: getResource
@@ -83,6 +401,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
   /workshops:
     get:
       operationId: getWorkshops
@@ -114,6 +433,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Workshop"
+
   /subscribe:
     post:
       operationId: subscribe
@@ -138,6 +458,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
   /community:
     get:
       operationId: getCommunityPosts
@@ -169,23 +490,266 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CommunityPost"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    # Auth
+    RegisterBody:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+        password:
+          type: string
+          minLength: 8
+        role:
+          type: string
+          enum: [user, professional]
+          default: user
+      required: [username, password]
+
+    LoginBody:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required: [username, password]
+
+    UserProfile:
+      type: object
+      properties:
+        sub:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+      required: [sub, username, role]
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
+      required: [token, user]
+
+    # Mood
+    MoodLogBody:
+      type: object
+      properties:
+        userId:
+          type: string
+        moodIndex:
+          type: integer
+          minimum: 0
+          maximum: 4
+        moodLabel:
+          type: string
+      required: [userId, moodIndex, moodLabel]
+
+    MoodLogResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        id:
+          type: integer
+      required: [ok]
+
+    # JITAI
+    JitaiIntervention:
+      type: object
+      properties:
+        id:
+          type: string
+        titleAr:
+          type: string
+        titleEn:
+          type: string
+        messageAr:
+          type: string
+        messageEn:
+          type: string
+        actionAr:
+          type: string
+        actionEn:
+          type: string
+        actionPath:
+          type: string
+        icon:
+          type: string
+        color:
+          type: string
+      required: [id, titleAr, titleEn, messageAr, messageEn, actionAr, actionEn, actionPath, icon, color]
+
+    JitaiCheckResponse:
+      type: object
+      properties:
+        triggered:
+          type: boolean
+        consecutiveDays:
+          type: integer
+        intervention:
+          $ref: "#/components/schemas/JitaiIntervention"
+      required: [triggered]
+
+    JitaiAcceptBody:
+      type: object
+      properties:
+        userId:
+          type: string
+      required: [userId]
+
+    # Stats
+    StatsResponse:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalMoodLogs:
+          type: integer
+        avgMoodScore:
+          type: number
+        totalMessages:
+          type: integer
+      required: [totalUsers, totalMoodLogs, avgMoodScore, totalMessages]
+
+    # Messages
+    Professional:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        specialty:
+          type: string
+        available:
+          type: boolean
+      required: [id, username, specialty, available]
+
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [peer, consult]
+        is_anonymous:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        user1_id:
+          type: integer
+        user1_name:
+          type: string
+        user1_role:
+          type: string
+        user2_id:
+          type: integer
+        user2_name:
+          type: string
+        user2_role:
+          type: string
+        last_message:
+          type: string
+          nullable: true
+        last_message_at:
+          type: string
+          format: date-time
+          nullable: true
+        unread_count:
+          type: integer
+      required: [id, type, is_anonymous, created_at, user1_id, user1_name, user1_role, user2_id, user2_name, user2_role, unread_count]
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversation_id:
+          type: integer
+        sender_id:
+          type: integer
+        sender_name:
+          type: string
+        sender_role:
+          type: string
+        message_text:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        is_read:
+          type: boolean
+      required: [id, conversation_id, sender_id, sender_name, sender_role, message_text, timestamp, is_read]
+
+    StartConversationBody:
+      type: object
+      properties:
+        deviceId:
+          type: string
+        professionalId:
+          type: integer
+        isAnonymous:
+          type: boolean
+      required: [deviceId, professionalId, isAnonymous]
+
+    StartConversationResponse:
+      type: object
+      properties:
+        conversationId:
+          type: integer
+        userId:
+          type: integer
+      required: [conversationId, userId]
+
+    SendMessageBody:
+      type: object
+      properties:
+        deviceId:
+          type: string
+        text:
+          type: string
+      required: [deviceId, text]
+
+    # Existing schemas
     SubscribeBody:
       type: object
       properties:
         email:
           type: string
           format: email
-      required:
-        - email
+      required: [email]
+
     SubscribeResponse:
       type: object
       properties:
@@ -193,16 +757,8 @@ components:
           type: string
         email:
           type: string
-      required:
-        - message
-        - email
-    ErrorResponse:
-      type: object
-      properties:
-        error:
-          type: string
-      required:
-        - error
+      required: [message, email]
+
     Resource:
       type: object
       properties:
@@ -220,12 +776,8 @@ components:
         createdAt:
           type: string
           format: date-time
-      required:
-        - id
-        - title
-        - description
-        - category
-        - createdAt
+      required: [id, title, description, category, createdAt]
+
     CreateResource:
       type: object
       properties:
@@ -238,10 +790,8 @@ components:
           nullable: true
         category:
           type: string
-      required:
-        - title
-        - description
-        - category
+      required: [title, description, category]
+
     Workshop:
       type: object
       properties:
@@ -262,13 +812,8 @@ components:
         createdAt:
           type: string
           format: date-time
-      required:
-        - id
-        - title
-        - description
-        - date
-        - location
-        - createdAt
+      required: [id, title, description, date, location, createdAt]
+
     CreateWorkshop:
       type: object
       properties:
@@ -284,11 +829,8 @@ components:
           format: date-time
         location:
           type: string
-      required:
-        - title
-        - description
-        - date
-        - location
+      required: [title, description, date, location]
+
     CommunityPost:
       type: object
       properties:
@@ -303,12 +845,8 @@ components:
         createdAt:
           type: string
           format: date-time
-      required:
-        - id
-        - title
-        - content
-        - authorName
-        - createdAt
+      required: [id, title, content, authorName, createdAt]
+
     CreateCommunityPost:
       type: object
       properties:
@@ -318,7 +856,4 @@ components:
           type: string
         authorName:
           type: string
-      required:
-        - title
-        - content
-        - authorName
+      required: [title, content, authorName]

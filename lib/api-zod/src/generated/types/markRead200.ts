@@ -6,6 +6,6 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface SubscribeBody {
-  email: string;
-}
+export type MarkRead200 = {
+  ok: boolean;
+};

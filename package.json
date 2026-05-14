@@ -4,15 +4,17 @@
   "license": "MIT",
   "scripts": {
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
-    "build": "pnpm run typecheck && pnpm -r --if-present run build",
-    "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "codegen": "pnpm --filter @workspace/api-spec run codegen",
     "start": "concurrently \"cd server && node server.js\" \"npx wait-on http://localhost:3000 && cd artifacts/aman-app && pnpm run dev --host 0.0.0.0 --port 5173 --strictPort false\""
   },
   "private": true,
   "devDependencies": {
     "concurrently": "^8.2.2",
     "prettier": "^3.8.1",
+    "turbo": "^2.9.12",
     "typescript": "~5.9.3"
   },
   "dependencies": {

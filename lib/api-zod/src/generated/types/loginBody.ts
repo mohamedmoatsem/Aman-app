@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface SubscribeBody {
-  email: string;
+export interface LoginBody {
+  username: string;
+  password: string;
 }

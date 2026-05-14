@@ -1,0 +1,28 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "tsconfig*.json", "vite.config.*"],
+      "outputs": ["dist/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "inputs": ["src/**", "tsconfig*.json"]
+    },
+    "dev": {
+      "persistent": true,
+      "cache": false
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "test/**", "tsconfig*.json"],
+      "outputs": ["coverage/**"]
+    },
+    "codegen": {
+      "inputs": ["openapi.yaml", "orval.config.*"],
+      "outputs": ["../api-zod/src/generated/**", "../api-client-react/src/generated/**"]
+    }
+  }
+}

@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * Amān App API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import * as zod from "zod";
 
@@ -12,6 +12,214 @@ import * as zod from "zod";
  */
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
+});
+
+/**
+ * @summary Register a new user
+ */
+export const registerBodyUsernameMin = 3;
+export const registerBodyUsernameMax = 50;
+
+export const registerBodyPasswordMin = 8;
+
+export const registerBodyRoleDefault = `user`;
+
+export const RegisterBody = zod.object({
+  username: zod
+    .string()
+    .min(registerBodyUsernameMin)
+    .max(registerBodyUsernameMax),
+  password: zod.string().min(registerBodyPasswordMin),
+  role: zod.enum(["user", "professional"]).default(registerBodyRoleDefault),
+});
+
+/**
+ * @summary Login and receive a JWT token
+ */
+export const LoginBody = zod.object({
+  username: zod.string(),
+  password: zod.string(),
+});
+
+export const LoginResponse = zod.object({
+  token: zod.string(),
+  user: zod.object({
+    sub: zod.number(),
+    username: zod.string(),
+    role: zod.string(),
+  }),
+});
+
+/**
+ * @summary Get current authenticated user
+ */
+export const GetMeResponse = zod.object({
+  user: zod.object({
+    sub: zod.number(),
+    username: zod.string(),
+    role: zod.string(),
+  }),
+});
+
+/**
+ * @summary Log a mood entry for a device user
+ */
+export const logMoodBodyMoodIndexMin = 0;
+export const logMoodBodyMoodIndexMax = 4;
+
+export const LogMoodBody = zod.object({
+  userId: zod.string(),
+  moodIndex: zod
+    .number()
+    .min(logMoodBodyMoodIndexMin)
+    .max(logMoodBodyMoodIndexMax),
+  moodLabel: zod.string(),
+});
+
+/**
+ * @summary Check whether a JITAI intervention should be triggered
+ */
+export const CheckJitaiParams = zod.object({
+  userId: zod.coerce.string(),
+});
+
+export const CheckJitaiResponse = zod.object({
+  triggered: zod.boolean(),
+  consecutiveDays: zod.number().optional(),
+  intervention: zod
+    .object({
+      id: zod.string(),
+      titleAr: zod.string(),
+      titleEn: zod.string(),
+      messageAr: zod.string(),
+      messageEn: zod.string(),
+      actionAr: zod.string(),
+      actionEn: zod.string(),
+      actionPath: zod.string(),
+      icon: zod.string(),
+      color: zod.string(),
+    })
+    .optional(),
+});
+
+/**
+ * @summary Record that a user accepted a JITAI intervention
+ */
+export const AcceptJitaiBody = zod.object({
+  userId: zod.string(),
+});
+
+export const AcceptJitaiResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+/**
+ * @summary Get aggregate app statistics
+ */
+export const GetStatsResponse = zod.object({
+  totalUsers: zod.number(),
+  totalMoodLogs: zod.number(),
+  avgMoodScore: zod.number(),
+  totalMessages: zod.number(),
+});
+
+/**
+ * @summary List available mental health professionals
+ */
+export const GetProfessionalsResponseItem = zod.object({
+  id: zod.number(),
+  username: zod.string(),
+  specialty: zod.string(),
+  available: zod.boolean(),
+});
+export const GetProfessionalsResponse = zod.array(GetProfessionalsResponseItem);
+
+/**
+ * @summary Get conversations for the current device user
+ */
+export const GetConversationsQueryParams = zod.object({
+  deviceId: zod.coerce.string(),
+});
+
+export const GetConversationsResponseItem = zod.object({
+  id: zod.number(),
+  type: zod.enum(["peer", "consult"]),
+  is_anonymous: zod.boolean(),
+  created_at: zod.date(),
+  user1_id: zod.number(),
+  user1_name: zod.string(),
+  user1_role: zod.string(),
+  user2_id: zod.number(),
+  user2_name: zod.string(),
+  user2_role: zod.string(),
+  last_message: zod.string().nullish(),
+  last_message_at: zod.date().nullish(),
+  unread_count: zod.number(),
+});
+export const GetConversationsResponse = zod.array(GetConversationsResponseItem);
+
+/**
+ * @summary Start a new conversation with a professional
+ */
+export const StartConversationBody = zod.object({
+  deviceId: zod.string(),
+  professionalId: zod.number(),
+  isAnonymous: zod.boolean(),
+});
+
+export const StartConversationResponse = zod.object({
+  conversationId: zod.number(),
+  userId: zod.number(),
+});
+
+/**
+ * @summary Get messages for a conversation
+ */
+export const GetMessagesParams = zod.object({
+  conversationId: zod.coerce.number(),
+});
+
+export const GetMessagesResponseItem = zod.object({
+  id: zod.number(),
+  conversation_id: zod.number(),
+  sender_id: zod.number(),
+  sender_name: zod.string(),
+  sender_role: zod.string(),
+  message_text: zod.string(),
+  timestamp: zod.date(),
+  is_read: zod.boolean(),
+});
+export const GetMessagesResponse = zod.array(GetMessagesResponseItem);
+
+/**
+ * @summary Send a message in a conversation
+ */
+export const SendMessageParams = zod.object({
+  conversationId: zod.coerce.number(),
+});
+
+export const SendMessageBody = zod.object({
+  deviceId: zod.string(),
+  text: zod.string(),
+});
+
+export const SendMessageResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+/**
+ * @summary Mark messages in a conversation as read
+ */
+export const MarkReadParams = zod.object({
+  conversationId: zod.coerce.number(),
+});
+
+export const MarkReadBody = zod.object({
+  deviceId: zod.string(),
+});
+
+export const MarkReadResponse = zod.object({
+  ok: zod.boolean(),
 });
 
 /**

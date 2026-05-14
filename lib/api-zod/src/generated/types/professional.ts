@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface SubscribeBody {
-  email: string;
+export interface Professional {
+  id: number;
+  username: string;
+  specialty: string;
+  available: boolean;
 }

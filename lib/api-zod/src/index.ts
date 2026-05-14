@@ -1,7 +1,4 @@
-export * from "./generated/api";
-
-// نقوم بتصدير ملف types مع تغيير اسم الجزء المتصادم يدوياً
-export type { SubscribeBody as SubscribeBodyType } from "./generated/types";
-
-// ثم نصدر باقي المحتويات يدوياً إذا كنت تعرفها، أو نكتفي بما سبق 
-// إذا كان التطبيق يعتمد بشكل أساسي على ما في ملف api.
+// Only export Zod validation schemas (api.ts) — not the TypeScript interfaces (types/)
+// because the generated types/index.ts uses relative imports without .js extensions
+// which conflicts with nodenext moduleResolution.
+export * from "./generated/api.js";

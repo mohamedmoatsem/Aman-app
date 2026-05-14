@@ -3,10 +3,152 @@
  * Do not edit manually.
  * Api
  * Amān App API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 export interface HealthStatus {
   status: string;
+}
+
+export interface ErrorResponse {
+  error: string;
+}
+
+export type RegisterBodyRole =
+  (typeof RegisterBodyRole)[keyof typeof RegisterBodyRole];
+
+export const RegisterBodyRole = {
+  user: "user",
+  professional: "professional",
+} as const;
+
+export interface RegisterBody {
+  /**
+   * @minLength 3
+   * @maxLength 50
+   */
+  username: string;
+  /** @minLength 8 */
+  password: string;
+  role?: RegisterBodyRole;
+}
+
+export interface LoginBody {
+  username: string;
+  password: string;
+}
+
+export interface UserProfile {
+  sub: number;
+  username: string;
+  role: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: UserProfile;
+}
+
+export interface MoodLogBody {
+  userId: string;
+  /**
+   * @minimum 0
+   * @maximum 4
+   */
+  moodIndex: number;
+  moodLabel: string;
+}
+
+export interface MoodLogResponse {
+  ok: boolean;
+  id?: number;
+}
+
+export interface JitaiIntervention {
+  id: string;
+  titleAr: string;
+  titleEn: string;
+  messageAr: string;
+  messageEn: string;
+  actionAr: string;
+  actionEn: string;
+  actionPath: string;
+  icon: string;
+  color: string;
+}
+
+export interface JitaiCheckResponse {
+  triggered: boolean;
+  consecutiveDays?: number;
+  intervention?: JitaiIntervention;
+}
+
+export interface JitaiAcceptBody {
+  userId: string;
+}
+
+export interface StatsResponse {
+  totalUsers: number;
+  totalMoodLogs: number;
+  avgMoodScore: number;
+  totalMessages: number;
+}
+
+export interface Professional {
+  id: number;
+  username: string;
+  specialty: string;
+  available: boolean;
+}
+
+export type ConversationType =
+  (typeof ConversationType)[keyof typeof ConversationType];
+
+export const ConversationType = {
+  peer: "peer",
+  consult: "consult",
+} as const;
+
+export interface Conversation {
+  id: number;
+  type: ConversationType;
+  is_anonymous: boolean;
+  created_at: string;
+  user1_id: number;
+  user1_name: string;
+  user1_role: string;
+  user2_id: number;
+  user2_name: string;
+  user2_role: string;
+  last_message?: string | null;
+  last_message_at?: string | null;
+  unread_count: number;
+}
+
+export interface Message {
+  id: number;
+  conversation_id: number;
+  sender_id: number;
+  sender_name: string;
+  sender_role: string;
+  message_text: string;
+  timestamp: string;
+  is_read: boolean;
+}
+
+export interface StartConversationBody {
+  deviceId: string;
+  professionalId: number;
+  isAnonymous: boolean;
+}
+
+export interface StartConversationResponse {
+  conversationId: number;
+  userId: number;
+}
+
+export interface SendMessageBody {
+  deviceId: string;
+  text: string;
 }
 
 export interface SubscribeBody {
@@ -16,10 +158,6 @@ export interface SubscribeBody {
 export interface SubscribeResponse {
   message: string;
   email: string;
-}
-
-export interface ErrorResponse {
-  error: string;
 }
 
 export interface Resource {
@@ -69,3 +207,27 @@ export interface CreateCommunityPost {
   content: string;
   authorName: string;
 }
+
+export type GetMe200 = {
+  user: UserProfile;
+};
+
+export type AcceptJitai200 = {
+  ok: boolean;
+};
+
+export type GetConversationsParams = {
+  deviceId: string;
+};
+
+export type SendMessage200 = {
+  ok: boolean;
+};
+
+export type MarkReadBody = {
+  deviceId: string;
+};
+
+export type MarkRead200 = {
+  ok: boolean;
+};
