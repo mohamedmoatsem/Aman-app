@@ -4,12 +4,10 @@ import { GoogleGenAI } from "@google/genai";
 const router: IRouter = Router();
 
 const GEMINI_API_KEY =
-  process.env.AI_INTEGRATIONS_GEMINI_API_KEY ??
   process.env.Gemini_API_KEY ??
   process.env.GEMINI_API_KEY ??
   "";
-const GEMINI_BASE_URL = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL ?? "";
-const MODEL_NAME = "gemini-2.5-flash";
+const MODEL_NAME = "gemma-4-26b-a4b-it";
 
 // ════════════════════════════════════════════════════════════════════════
 //  AMĀN SYSTEM PROMPT — v3 (Sudan War & Conflict Mental Health Edition)
@@ -261,12 +259,7 @@ router.post("/", async (req, res) => {
       return res.status(503).json({ error: "مفتاح الذكاء الاصطناعي غير مضبوط" });
     }
 
-    const genAI = new GoogleGenAI({
-      apiKey: GEMINI_API_KEY,
-      ...(GEMINI_BASE_URL
-        ? { httpOptions: { baseUrl: GEMINI_BASE_URL, apiVersion: "" } }
-        : {}),
-    });
+    const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
     const contents = [
       ...(history ?? []).map((h) => ({
