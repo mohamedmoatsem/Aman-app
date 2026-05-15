@@ -209,7 +209,7 @@ router.get("/stats", async (req, res) => {
       };
     });
 
-    const rawWeekly = (weeklyResult.rows ?? []) as { log_date: string; avg_score: string; entries: number }[];
+    const rawWeekly = (weeklyResult?.rows ?? []) as { log_date: string; avg_score: string; entries: number }[];
     const mergedWeekly = weeklyData.map((demo) => {
       const real = rawWeekly.find((r) => r.log_date === demo.date);
       return real
