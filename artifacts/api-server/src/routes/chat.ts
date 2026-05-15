@@ -1,10 +1,15 @@
 import { Router, type IRouter } from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 const router: IRouter = Router();
 
-const GEMINI_API_KEY = process.env.Gemini_API_KEY ?? process.env.GEMINI_API_KEY ?? "";
-const MODEL_NAME = "gemma-4-26b-a4b-it";
+const GEMINI_API_KEY =
+  process.env.AI_INTEGRATIONS_GEMINI_API_KEY ??
+  process.env.Gemini_API_KEY ??
+  process.env.GEMINI_API_KEY ??
+  "";
+const GEMINI_BASE_URL = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL ?? "";
+const MODEL_NAME = "gemini-2.5-flash";
 
 // ════════════════════════════════════════════════════════════════════════
 //  AMĀN SYSTEM PROMPT — v3 (Sudan War & Conflict Mental Health Edition)
@@ -256,18 +261,26 @@ router.post("/", async (req, res) => {
       return res.status(503).json({ error: "مفتاح الذكاء الاصطناعي غير مضبوط" });
     }
 
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({
-      model: MODEL_NAME,
-      systemInstruction: SYSTEM_PROMPT,
+    const genAI = new GoogleGenAI({
+      apiKey: GEMINI_API_KEY,
+      ...(GEMINI_BASE_URL
+        ? { httpOptions: { baseUrl: GEMINI_BASE_URL, apiVersion: "" } }
+        : {}),
     });
 
-    const chatSession = model.startChat({
-      history: (history ?? []).map((h) => ({
+    const contents = [
+      ...(history ?? []).map((h) => ({
         role: h.role,
         parts: h.parts,
       })),
-      generationConfig: {
+      { role: "user" as const, parts: [{ text: message }] },
+    ];
+
+    const result = await genAI.models.generateContent({
+      model: MODEL_NAME,
+      contents,
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
         temperature: 0.80,
         topK: 40,
         topP: 0.92,
@@ -275,10 +288,7 @@ router.post("/", async (req, res) => {
       },
     });
 
-    const result = await chatSession.sendMessage(message);
-    const rawReply = result.response.text();
-
-    // استخرج الرد الفعلي: آخر فقرة أو الجزء العربي الأخير
+    const rawReply = result.text ?? "";
     const reply = extractFinalReply(rawReply);
 
     return res.json({ reply });
