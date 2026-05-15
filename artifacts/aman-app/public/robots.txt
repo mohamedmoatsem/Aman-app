@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://aman-app--mohamedmoatsem9.replit.app/sitemap.xml
