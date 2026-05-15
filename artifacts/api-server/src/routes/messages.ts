@@ -11,6 +11,63 @@ const SPECIALTIES: Record<string, string> = {
   "د. يوسف إبراهيم": "اضطرابات القلق والاكتئاب",
 };
 
+// Demo professionals shown when DB tables don't exist yet
+const DEMO_PROFESSIONALS = [
+  { id: 1001, username: "د. سارة محمد",    specialty: "طب نفسي وعلاج الصدمات",             available: true },
+  { id: 1002, username: "د. أحمد عمر",     specialty: "علاج نفسي معرفي سلوكي",             available: true },
+  { id: 1003, username: "د. منى خالد",    specialty: "إرشاد نفسي وعلاقات",                available: true },
+  { id: 1004, username: "د. يوسف إبراهيم", specialty: "اضطرابات القلق والاكتئاب",           available: true },
+];
+
+// Ensure required tables exist (idempotent — safe to call every startup)
+async function ensureTablesExist() {
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id            BIGSERIAL PRIMARY KEY,
+        username      TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL DEFAULT '',
+        role          TEXT NOT NULL DEFAULT 'user',
+        is_anonymous  BOOLEAN NOT NULL DEFAULT false,
+        created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    `);
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS conversations (
+        id          BIGSERIAL PRIMARY KEY,
+        user1_id    BIGINT NOT NULL REFERENCES users(id),
+        user2_id    BIGINT NOT NULL REFERENCES users(id),
+        type        TEXT NOT NULL DEFAULT 'consult',
+        is_anonymous BOOLEAN NOT NULL DEFAULT false,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    `);
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS messages (
+        id              BIGSERIAL PRIMARY KEY,
+        conversation_id BIGINT NOT NULL REFERENCES conversations(id),
+        sender_id       BIGINT NOT NULL REFERENCES users(id),
+        message_text    TEXT NOT NULL,
+        timestamp       TIMESTAMPTZ NOT NULL DEFAULT now(),
+        is_read         BOOLEAN NOT NULL DEFAULT false,
+        ai_insight      TEXT
+      )
+    `);
+    // Seed demo professionals if none exist
+    for (const pro of DEMO_PROFESSIONALS) {
+      await db.execute(sql`
+        INSERT INTO users (username, password_hash, role, is_anonymous)
+        VALUES (${pro.username}, 'demo', 'professional', false)
+        ON CONFLICT (username) DO NOTHING
+      `);
+    }
+  } catch (err: any) {
+    console.error("[messages] ensureTablesExist failed:", err?.message);
+  }
+}
+
+ensureTablesExist();
+
 /* ─── helper: get or create anonymous user by deviceId ─── */
 async function getOrCreateUser(deviceId: string, displayName?: string): Promise<number> {
   const res = await db.execute(sql`
@@ -40,10 +97,11 @@ router.get("/professionals", async (_req, res) => {
       specialty: SPECIALTIES[r.username] ?? "مختص نفسي",
       available: true,
     }));
-    res.json(rows);
+    // If DB returned nothing, fall back to demo data
+    return res.json(rows.length > 0 ? rows : DEMO_PROFESSIONALS);
   } catch (err: any) {
     console.error("[professionals] error:", err?.message);
-    res.status(500).json({ error: "فشل في جلب قائمة المختصين" });
+    return res.json(DEMO_PROFESSIONALS);
   }
 });
 
