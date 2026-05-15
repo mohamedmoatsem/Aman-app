@@ -60,7 +60,7 @@ const quickLinkColors = [
   { color: "text-emerald-500", bg: "bg-emerald-500/10", href: "/resources" },
   { color: "text-amber-500", bg: "bg-amber-500/10", href: "/workshops" },
   { color: "text-sky-500", bg: "bg-sky-500/10", href: "/community" },
-  { color: "text-indigo-500", bg: "bg-indigo-500/10", href: "/resources" },
+  { color: "text-indigo-500", bg: "bg-indigo-500/10", href: "#protection" },
 ];
 
 function getDeviceId(): string {

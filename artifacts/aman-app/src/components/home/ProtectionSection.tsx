@@ -175,7 +175,7 @@ export default function ProtectionSection() {
   const [expandedRight, setExpandedRight] = useState<number | null>(null);
 
   return (
-    <section aria-labelledby="protection-heading" dir={t.dir}>
+    <section id="protection" aria-labelledby="protection-heading" dir={t.dir}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
