@@ -98,6 +98,15 @@ const DEMO = {
   },
 };
 
+// Helper: run a single query and return null on error (graceful fallback)
+async function tryQuery(q: ReturnType<typeof sql>) {
+  try {
+    return await db.execute(q);
+  } catch {
+    return null;
+  }
+}
+
 router.get("/stats", async (req, res) => {
   const lang = (req.query.lang as string) === "en" ? "en" : "ar";
   try {
@@ -111,21 +120,21 @@ router.get("/stats", async (req, res) => {
       communityResult,
       convResult,
     ] = await Promise.all([
-      db.execute(sql`SELECT count(*)::int AS count FROM users`),
+      tryQuery(sql`SELECT count(*)::int AS count FROM users`),
 
-      db.execute(sql`
+      tryQuery(sql`
         SELECT count(*)::int AS total,
                round(avg(score)::numeric, 2) AS "avgScore"
         FROM mood_logs
       `),
 
-      db.execute(sql`
+      tryQuery(sql`
         SELECT count(*) filter (where jitai_triggered)::int AS triggered,
                count(*) filter (where jitai_accepted)::int  AS accepted
         FROM motivation_patterns
       `),
 
-      db.execute(sql`
+      tryQuery(sql`
         SELECT log_date::text, round(avg(score)::numeric,2) as avg_score, count(*)::int as entries
         FROM mood_logs
         WHERE log_date >= current_date - interval '14 days'
@@ -134,7 +143,7 @@ router.get("/stats", async (req, res) => {
         LIMIT 14
       `),
 
-      db.execute(sql`
+      tryQuery(sql`
         SELECT
           count(*) filter (where score = 1)::int as very_low,
           count(*) filter (where score = 2)::int as low,
@@ -143,7 +152,7 @@ router.get("/stats", async (req, res) => {
         FROM mood_logs
       `),
 
-      db.execute(sql`
+      tryQuery(sql`
         SELECT
           round(avg(score) filter (where log_date >= current_date - interval '7 days')::numeric, 2) as this_week,
           round(avg(score) filter (where log_date >= current_date - interval '14 days'
@@ -151,9 +160,9 @@ router.get("/stats", async (req, res) => {
         FROM mood_logs
       `),
 
-      db.execute(sql`SELECT count(*)::int as cnt FROM community_posts`),
+      tryQuery(sql`SELECT count(*)::int as cnt FROM community_posts`),
 
-      db.execute(sql`SELECT count(*)::int as cnt FROM conversations`),
+      tryQuery(sql`SELECT count(*)::int as cnt FROM conversations`),
     ]);
 
     // ── Real DB values ──────────────────────────────────────────────────
