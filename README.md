@@ -69,6 +69,54 @@ The core feature is the **"Aman" AI Companion**, powered by Google's **Gemma 4 (
 3.  **Integration with Humanitarian Organizations:** Aman can be transformed into a broadcast tool for NGOs to send safety announcements, mobile clinic schedules, and local emergency numbers directly to users.
 
 ---
+## 🚀 Quick Start (Local Development)
+
+Follow these steps to run Aman on your local machine.
+
+### Prerequisites
+- Python 3.9 or higher
+- pip (Python package installer)
+- A Gemma API key (get one from [Google AI Studio](https://aistudio.google.com/apikey))
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/mohamedmoatsem9/Aman-app.git
+   cd Aman-app
+```
+
+1. Install dependencies
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Set up environment variables
+   · Copy the example environment file:
+     ```bash
+     cp .env.example .env
+     ```
+   · Open .env and fill in your keys:
+     ```env
+     GEMMA_API_KEY=your_gemma_api_key_here
+     GEMMA_MODEL=gemma-4-26b-a4b-it
+     SECRET_KEY=your_random_secret_key
+     DATABASE_URL=sqlite:///aman.db
+     ```
+3. Run the application
+   ```bash
+   python app.py
+   ```
+   The app will be available at http://localhost:5000.
+4. Open in browser
+   Navigate to http://localhost:5000 to see Aman in action.
+
+Environment Variables Reference
+
+Variable Description Default
+GEMMA_API_KEY Your Gemma API key from Google AI Studio (Required)
+GEMMA_MODEL The Gemma model variant to use gemma-4-26b-a4b-it
+SECRET_KEY Flask secret key for session security (Required)
+DATABASE_URL Database connection string sqlite:///aman.db
 
 ## 💔 Challenges: The Full Picture Behind the Code
 
