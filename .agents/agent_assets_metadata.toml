@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "kOs6Cyjz6iEJcjHNUXVgz"
+uri = "file://screenshots/aman-arabic-conversations.jpeg"
+type = "image"
+title = "أمان — محادثات عربية"
+
+[[outputs]]
+id = "r2MDcCJf5A9NwIcLHOhQG"
+uri = "file://screenshots/aman-english-conversations.jpeg"
+type = "image"
+title = "Amān — English Conversations"
