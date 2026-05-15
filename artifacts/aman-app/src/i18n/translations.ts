@@ -139,6 +139,10 @@ export const translations = {
       placeholder: "احكي لي البدور في راسك...",
       welcomeMsg: "السلام عليكم! أنا مساعد أمان، رفيقك في أي وقت محتاج فيه حد يسمعك 🌿\nقولي شنو في بالك اليوم؟",
       quickPrompts: ["حاسس بضغط اليوم", "ما قادر أنام", "زهقت من كل شيء", "محتاج أتكلم مع أحد"],
+      micStart: "اضغط للتحدث",
+      micListening: "جاري الاستماع...",
+      micNotSupported: "متصفحك لا يدعم التسجيل الصوتي",
+      micError: "تعذّر التسجيل، جرّب مرة ثانية",
     },
     messages: {
       title: "رسائل المختصين",
@@ -421,6 +425,10 @@ export const translations = {
       placeholder: "Tell me what's on your mind...",
       welcomeMsg: "Hello! I'm the Amān assistant, your companion whenever you need someone to listen 🌿\nTell me, what's on your mind today?",
       quickPrompts: ["Feeling overwhelmed today", "Can't sleep", "Tired of everything", "Need to talk to someone"],
+      micStart: "Tap to speak",
+      micListening: "Listening...",
+      micNotSupported: "Your browser doesn't support voice recording",
+      micError: "Recording failed, please try again",
     },
     messages: {
       title: "Specialists' Messages",

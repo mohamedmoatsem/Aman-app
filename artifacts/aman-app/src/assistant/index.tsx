@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
-import { ArrowRight, ArrowLeft, Send, Bot, Loader2, AlertTriangle, Users, Sparkles, WifiOff } from "lucide-react";
+import { ArrowRight, ArrowLeft, Send, Bot, Loader2, AlertTriangle, Users, Sparkles, WifiOff, Mic, MicOff } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 
@@ -29,9 +29,70 @@ async function sendChatMessage(
   return data.reply as string;
 }
 
+// ── Voice input hook ──────────────────────────────────────────────────────────
+function useVoiceInput(lang: string, onTranscript: (text: string) => void) {
+  const [recording, setRecording] = useState(false);
+  const [interim, setInterim] = useState("");
+  const [micError, setMicError] = useState<"not_supported" | "error" | null>(null);
+  const recognitionRef = useRef<any>(null);
+
+  const isSupported =
+    typeof window !== "undefined" &&
+    ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+
+  const start = useCallback(() => {
+    if (!isSupported) { setMicError("not_supported"); return; }
+    setMicError(null);
+    setInterim("");
+
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
+    const rec = new SR();
+    recognitionRef.current = rec;
+
+    rec.lang = lang === "ar" ? "ar-SA" : "en-US";
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+
+    rec.onstart = () => setRecording(true);
+    rec.onend   = () => { setRecording(false); setInterim(""); };
+    rec.onerror = (e: any) => {
+      setRecording(false);
+      setInterim("");
+      if (e.error !== "no-speech" && e.error !== "aborted") setMicError("error");
+    };
+    rec.onresult = (e: any) => {
+      let finalText = "";
+      let interimText = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        e.results[i].isFinal ? (finalText += t) : (interimText += t);
+      }
+      if (interimText) setInterim(interimText);
+      if (finalText) {
+        onTranscript(finalText.trim());
+        setInterim("");
+      }
+    };
+
+    rec.start();
+  }, [lang, isSupported, onTranscript]);
+
+  const stop = useCallback(() => {
+    recognitionRef.current?.stop();
+    setRecording(false);
+    setInterim("");
+  }, []);
+
+  useEffect(() => () => recognitionRef.current?.abort(), []);
+
+  return { recording, interim, micError, isSupported, start, stop };
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 export default function Assistant() {
   const [, navigate] = useLocation();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const a = t.assistant;
   const isRtl = t.dir === "rtl";
   const isOnline = useOnlineStatus();
@@ -46,6 +107,15 @@ export default function Assistant() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const nextId = useRef(1);
+
+  // append voice transcript to existing input
+  const handleTranscript = useCallback((text: string) => {
+    setInput((prev) => (prev ? prev + " " + text : text));
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }, []);
+
+  const { recording, interim, micError, isSupported, start, stop } =
+    useVoiceInput(lang, handleTranscript);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -103,6 +173,11 @@ export default function Assistant() {
       e.preventDefault();
       handleSend(input);
     }
+  };
+
+  const toggleMic = () => {
+    if (recording) stop();
+    else start();
   };
 
   const BackArrow = isRtl ? ArrowRight : ArrowLeft;
@@ -249,24 +324,73 @@ export default function Assistant() {
             <span>{isRtl ? "المحادثة الذكية تحتاج اتصالاً بالإنترنت" : "AI chat requires an internet connection"}</span>
           </div>
         ) : (
-          <div className="flex items-end gap-2 bg-muted rounded-3xl px-4 py-2 border focus-within:border-primary transition-colors">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={a.placeholder}
-              rows={1}
-              className="flex-1 bg-transparent resize-none text-sm outline-none py-1 max-h-28"
-            />
-            <button
-              onClick={() => handleSend(input)}
-              disabled={!input.trim() || loading}
-              className="w-9 h-9 rounded-2xl bg-primary flex items-center justify-center disabled:opacity-40 transition-opacity shrink-0"
-            >
-              <Send className="w-4 h-4 text-white" />
-            </button>
-          </div>
+          <>
+            {/* Interim voice transcript preview */}
+            {recording && interim && (
+              <div className="mb-2 px-4 py-2 bg-red-50 border border-red-200/60 rounded-2xl text-sm text-muted-foreground italic animate-pulse">
+                {interim}
+              </div>
+            )}
+
+            {/* Mic not supported warning */}
+            {micError === "not_supported" && (
+              <p className="text-[10px] text-amber-600 text-center mb-1">{a.micNotSupported}</p>
+            )}
+            {micError === "error" && (
+              <p className="text-[10px] text-red-500 text-center mb-1">{a.micError}</p>
+            )}
+
+            <div className="flex items-end gap-2 bg-muted rounded-3xl px-3 py-2 border focus-within:border-primary transition-colors">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder={recording ? a.micListening : a.placeholder}
+                rows={1}
+                className="flex-1 bg-transparent resize-none text-sm outline-none py-1.5 max-h-28 leading-relaxed"
+              />
+
+              {/* Mic button */}
+              {isSupported && (
+                <button
+                  type="button"
+                  onClick={toggleMic}
+                  disabled={loading}
+                  aria-label={recording ? a.micListening : a.micStart}
+                  className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 transition-all active:scale-95 disabled:opacity-40
+                    ${recording
+                      ? "bg-red-500 text-white shadow-lg shadow-red-500/30 animate-pulse"
+                      : "bg-muted-foreground/15 text-muted-foreground hover:bg-muted-foreground/25"
+                    }`}
+                >
+                  {recording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </button>
+              )}
+
+              {/* Send button */}
+              <button
+                onClick={() => handleSend(input)}
+                disabled={!input.trim() || loading}
+                className="w-9 h-9 rounded-2xl bg-primary flex items-center justify-center disabled:opacity-40 transition-opacity shrink-0 active:scale-95"
+                aria-label={t.chatSection?.send ?? "send"}
+              >
+                <Send className="w-4 h-4 text-white" />
+              </button>
+            </div>
+
+            {/* Recording status label */}
+            {recording && (
+              <p className="text-[10px] text-red-500 font-medium text-center mt-1.5 flex items-center justify-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping inline-block" />
+                {a.micListening}
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>
