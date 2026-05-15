@@ -274,9 +274,9 @@ router.post("/", async (req, res) => {
       contents,
       config: {
         systemInstruction: SYSTEM_PROMPT,
-        temperature: 0.80,
-        topK: 40,
-        topP: 0.92,
+        temperature: 0.90,
+        topK: 50,
+        topP: 0.95,
         maxOutputTokens: 600,
       },
     });
