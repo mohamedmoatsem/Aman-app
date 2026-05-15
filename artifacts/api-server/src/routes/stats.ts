@@ -165,20 +165,22 @@ router.get("/stats", async (req, res) => {
       tryQuery(sql`SELECT count(*)::int as cnt FROM conversations`),
     ]);
 
-    // ── Real DB values ──────────────────────────────────────────────────
-    const realUsers    = Number((usersResult.rows?.[0] as any)?.count   ?? 0);
-    const realLogs     = Number((moodResult.rows?.[0]  as any)?.total   ?? 0);
-    const avgScore     = Number((moodResult.rows?.[0]  as any)?.avgScore ?? 3.2);
-    const jitaiTriggered = Number((jitaiResult.rows?.[0] as any)?.triggered ?? 0);
-    const jitaiAccepted  = Number((jitaiResult.rows?.[0] as any)?.accepted  ?? 0);
+    // ── Real DB values (safe null-access since tryQuery may return null) ──
+    const realUsers    = Number((usersResult?.rows?.[0] as any)?.count    ?? 0);
+    const realLogs     = Number((moodResult?.rows?.[0]  as any)?.total    ?? 0);
+    const rawAvgScore  = Number((moodResult?.rows?.[0]  as any)?.avgScore ?? 0);
+    // Clamp to 1-5 scale — DB may store 0-100 values
+    const avgScore = rawAvgScore > 5 ? rawAvgScore / 20 : rawAvgScore > 0 ? rawAvgScore : 3.2;
+    const jitaiTriggered = Number((jitaiResult?.rows?.[0] as any)?.triggered ?? 0);
+    const jitaiAccepted  = Number((jitaiResult?.rows?.[0] as any)?.accepted  ?? 0);
     const acceptanceRate = jitaiTriggered > 0
       ? Math.round((jitaiAccepted / jitaiTriggered) * 100)
       : 78; // demo fallback
 
-    const trendRow   = (trendResult.rows?.[0]  ?? {}) as Record<string, unknown>;
-    const distRow    = (moodDistResult.rows?.[0] ?? {}) as Record<string, unknown>;
-    const commCount  = Number((communityResult.rows?.[0] as any)?.cnt ?? 0);
-    const convCount  = Number((convResult.rows?.[0] as any)?.cnt ?? 0);
+    const trendRow   = (trendResult?.rows?.[0]  ?? {}) as Record<string, unknown>;
+    const distRow    = (moodDistResult?.rows?.[0] ?? {}) as Record<string, unknown>;
+    const commCount  = Number((communityResult?.rows?.[0] as any)?.cnt ?? 0);
+    const convCount  = Number((convResult?.rows?.[0]    as any)?.cnt ?? 0);
 
     const thisWeek = Number(trendRow.this_week ?? 3.4);
     const lastWeek = Number(trendRow.last_week ?? 3.1);
