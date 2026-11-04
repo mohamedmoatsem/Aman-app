@@ -1,0 +1,1 @@
+- [pnpm root runner](pnpm-root-runner.md) — Turbo needs canonical package-manager metadata; mismatched pins can trigger a failed Replit toolchain bootstrap.

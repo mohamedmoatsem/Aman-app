@@ -6,9 +6,39 @@ id = "kOs6Cyjz6iEJcjHNUXVgz"
 uri = "file://screenshots/aman-arabic-conversations.jpeg"
 type = "image"
 title = "أمان — محادثات عربية"
+logical_id = "9dca83c2-56bf-41d8-9e00-a7ac2fb971b3"
 
 [[outputs]]
 id = "r2MDcCJf5A9NwIcLHOhQG"
 uri = "file://screenshots/aman-english-conversations.jpeg"
 type = "image"
 title = "Amān — English Conversations"
+logical_id = "506f978c-e4af-4ac1-bb5f-f848839d49ca"
+
+[[outputs]]
+id = "D_DdC7xaGb3uLQ_H7M8KN"
+uri = "file://assets/images/aman-home.jpg"
+type = "image"
+title = "أمان — الصفحة الرئيسية"
+description = "لقطة شاشة فعلية لواجهة الصفحة الرئيسية على الهاتف."
+logical_id = "ad91395f-e464-43f8-ad31-5bb3b8c25b78"
+content_hash = "sha256:db69bb05df6c83c6392d167ea2b6b13dc1d57b577083cc3da2b31b5a67e6dc7a"
+size = 36023
+mtime_ms = 1793789276396
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:5a3d682b-307d-49a3-9fed-8b83f1db8874/ad91395f-e464-43f8-ad31-5bb3b8c25b78/e1de2e98-9956-4ef5-95c6-e90ee64231f1"
+storage_version_token = "1793789617845414"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "DDjjROthgD4cU2MbYnWev"
+uri = "file://assets/images/aman-assistant.jpg"
+type = "image"
+title = "أمان — المساعد الذكي"
+description = "لقطة شاشة فعلية لمحادثة المساعد الذكي على الهاتف."
+logical_id = "88343526-6952-4380-b6f6-e5d4344a73d9"
+content_hash = "sha256:d6ec7b9aa7c50364dddd459bd1391092b779426aef52a5424434bf0787e4d1ef"
+size = 20563
+mtime_ms = 1793789277728
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:5a3d682b-307d-49a3-9fed-8b83f1db8874/88343526-6952-4380-b6f6-e5d4344a73d9/df9d326c-58a0-48e6-a416-099662c4f310"
+storage_version_token = "1793789618460323"
+content_type = "image/jpeg"

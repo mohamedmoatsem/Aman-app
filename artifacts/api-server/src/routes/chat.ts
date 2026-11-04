@@ -228,7 +228,7 @@ const SYSTEM_PROMPT = `أنت "أمان" — مساعد نفسي متخصص تح
 • لا تستخدم الفصحى المتكلفة أو المصطلحات الطبية مباشرة مع المستخدم`;
 
 // تنظيف رد النموذج: إزالة التفكير الداخلي والاحتفاظ بالرد الفعلي فقط
-function extractFinalReply(raw: string): string {
+export function extractFinalReply(raw: string): string {
   // إزالة أي كتلة <think>...</think> إن وجدت
   const noThink = raw.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
 
