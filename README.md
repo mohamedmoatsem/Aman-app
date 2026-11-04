@@ -90,10 +90,16 @@ streamlit run app.py
 
 ## الاختبارات والتحقق
 
-تشغيل اختبارات الخادم:
+تشغيل اختبارات المشروع:
 
 ```bash
-pnpm --filter @workspace/api-server run test
+pnpm test
+```
+
+فحص أنواع TypeScript:
+
+```bash
+pnpm run typecheck
 ```
 
 تغطي اختبارات Vitest وظائف مثل التحقق من بيانات المزاج، وتوقيع رموز الدخول، ورصد تتابع الأيام ذات المزاج المنخفض، وتنظيف ردود المساعد الذكي.

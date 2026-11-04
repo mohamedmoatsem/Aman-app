@@ -1,7 +1,7 @@
 import { pgTable, text, serial, integer, timestamp, date, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { usersTable } from "./users";
+import { usersTable } from "./users.js";
 
 export const moodLogsTable = pgTable("mood_logs", {
   id: serial("id").primaryKey(),
