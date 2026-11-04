@@ -1,6 +1,6 @@
 # أمان | Amān
 
-![حالة الاختبارات: ناجحة](https://img.shields.io/badge/tests-passing-brightgreen)
+![Tests Passing](https://img.shields.io/badge/Tests-Passing-brightgreen)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
@@ -50,14 +50,16 @@
 - `lib/db` — مخططات واتصال قاعدة البيانات.
 - `lib/api-spec` و`lib/api-client-react` و`lib/api-zod` — عقد API والأنواع والعملاء المولّدة.
 
-## مساهمتي بصفتي مهندس بنية النظام (System Architect)
+## My Engineering Contribution (System Architect)
 
-صممتُ أمان كنظام متكامل، لا كواجهة منفردة: فصلت تطبيق المستخدم عن خادم API ولوحة المعلومات، وربطت الخدمات بطبقة بيانات PostgreSQL، وحددت تقنيات مشتركة وعقداً لواجهات API قابلة للتوليد. كما راعيت منذ البداية دعم العربية والإنجليزية، وتجربة الهواتف، وإمكانية توسيع وحدات الدعم النفسي والمجتمعي دون خلط مسؤولياتها.
+I designed Amān as a modular full-stack system: a React/Vite client, an Express API service, PostgreSQL persistence through Drizzle, and a separate Streamlit dashboard. Shared OpenAPI-generated clients and schemas connect the application layers, while clear service boundaries leave room to extend the support and community features.
+
+As System Architect, I also shaped the AI integration: the API calls Google GenAI with Gemma (`gemma-4-26b-a4b-it`), keeps credentials on the server, and configures the assistant for supportive conversations in Sudanese Arabic and English.
 
 ## متطلبات التشغيل
 
 - Node.js 24 أو إصدار متوافق مع إعدادات المشروع.
-- pnpm 9.
+- pnpm 10.26.1.
 - PostgreSQL مع `DATABASE_URL`.
 - متغير `Gemini_API_KEY` للمحادثة الذكية؛ يقبل الخادم أيضاً `GEMINI_API_KEY`.
 
